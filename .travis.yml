@@ -10,3 +10,10 @@ script:
     mix format --check-formatted
     MIX_ENV=prod mix compile --warnings-as-errors
     mix dialyzer --halt-exit-status
+
+cache:
+  directories:
+    - priv/plts
+    - deps
+    - _build
+    - .elixir_ls
