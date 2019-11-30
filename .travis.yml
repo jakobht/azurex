@@ -1,0 +1,12 @@
+sudo: false
+
+language: elixir
+
+elixir: "1.9"
+opt_release: "22.0"
+
+script:
+  - |
+    mix format --check-formatted
+    MIX_ENV=prod mix compile --warnings-as-errors
+    mix dialyzer --halt-exit-status
