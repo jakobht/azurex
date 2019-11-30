@@ -102,11 +102,10 @@ defmodule Azurex.Authorization.SharedKey do
       "/",
       storage_account_name,
       path
-      | Enum.flat_map(query, fn {k, v} ->
+      | Enum.map(query, fn {k, v} ->
           ["\n", k, ":", v]
         end)
     ]
-    |> IO.iodata_to_binary()
   end
 
   defp put_signature(request, signature, storage_account_name, storage_account_key) do
