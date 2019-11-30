@@ -30,7 +30,6 @@ defmodule Azurex.Blob do
         {"x-ms-blob-type", "BlockBlob"}
       ]
     }
-    |> IO.inspect()
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
       storage_account_key: Config.storage_account_key(),
