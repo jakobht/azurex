@@ -42,4 +42,8 @@ defmodule Azurex.Blob do
       {:error, err} -> {:error, err}
     end
   end
+
+  def get_blob_url(name) do
+    "#{Config.api_url()}/#{Config.default_container()}/#{name}"
+  end
 end
