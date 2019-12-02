@@ -57,7 +57,7 @@ defmodule Azurex.Authorization.SharedKey do
 
   defp put_standard_headers(request, content_type) do
     now =
-      Timex.now("GMT") |> Timex.format!("{WDshort}, {D} {Mshort} {YYYY} {h24}:{m}:{s} {Zname}")
+      Timex.now("GMT") |> Timex.format!("{WDshort}, {0D} {Mshort} {YYYY} {h24}:{m}:{s} {Zname}")
 
     headers =
       if content_type,
