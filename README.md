@@ -1,3 +1,4 @@
+![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jakobht/azurex/Elixir%20CI) ![Hex.pm](https://img.shields.io/hexpm/v/azurex)
 # Azurex
 
 Azure Blob Storage library for Elixir
