@@ -43,6 +43,26 @@ defmodule Azurex.Blob do
     end
   end
 
+  @spec get_blob(String.t()) ::
+          {:ok, binary()}
+          | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
+  def get_blob(name) do
+    %HTTPoison.Request{
+      method: :get,
+      url: get_blob_url(name)
+    }
+    |> SharedKey.sign(
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key()
+    )
+    |> HTTPoison.request()
+    |> case do
+      {:ok, %{body: blob, status_code: 200}} -> {:ok, blob}
+      {:ok, err} -> {:error, err}
+      {:error, err} -> {:error, err}
+    end
+  end
+
   def get_blob_url(name) do
     "#{Config.api_url()}/#{Config.default_container()}/#{name}"
   end
