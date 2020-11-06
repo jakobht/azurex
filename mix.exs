@@ -7,7 +7,9 @@ defmodule Azurex.MixProject do
       version: "0.1.0",
       elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      name: "AzureX",
+      source_url: "https://github.com/jakobht/azurex"
     ]
   end
 
@@ -24,6 +26,17 @@ defmodule Azurex.MixProject do
       {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
       {:httpoison, "~> 1.6"},
       {:timex, "~> 3.6"}
+    ]
+  end
+
+  defp description() do
+    "Implementation of the Azure Blob storage rest API."
+  end
+
+  defp package() do
+    [
+      licenses: ["Apache-2.0", "MIT"],
+      links: %{"GitHub" => "https://github.com/jakobht/azurex"}
     ]
   end
 end
