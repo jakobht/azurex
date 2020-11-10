@@ -1,12 +1,17 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jakobht/azurex/Elixir%20CI) ![Hex.pm](https://img.shields.io/hexpm/v/azurex)
 # Azurex
 
-Azure Blob Storage library for Elixir
+Implementation of the Azure Blob Storage library [https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api](Rest API) for Elixir.
+
+## Supported actions
+Currently only supports:
+1. Downloading blobs
+2. Uploading blobs
 
 ## Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `azurex` to your list of dependencies in `mix.exs`:
+[Available in Hex](https://hex.pm/docs/publish), the package can be installed
+by adding `azurex` to your list of dependencies in `mix.exs` e.g.:
 
 ```elixir
 def deps do
@@ -16,6 +21,8 @@ def deps do
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/azurex](https://hexdocs.pm/azurex).
+Documentation can be found at [https://hexdocs.pm/azurex](https://hexdocs.pm/azurex). Or generated using [ExDoc](https://github.com/elixir-lang/ex_doc)
+
+## Development
+
+The goal is to suport all actions in the Azure Blob Storage library [https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api](Rest API) - PRs welcome :) 
