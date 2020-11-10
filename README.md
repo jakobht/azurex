@@ -1,7 +1,7 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jakobht/azurex/Elixir%20CI) ![Hex.pm](https://img.shields.io/hexpm/v/azurex)
 # Azurex
 
-Implementation of the Azure Blob Storage library [https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api](Rest API) for Elixir.
+Implementation of the Azure Blob Storage library [Rest API](https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api) for Elixir.
 
 ## Supported actions
 Currently only supports:
@@ -25,4 +25,4 @@ Documentation can be found at [https://hexdocs.pm/azurex](https://hexdocs.pm/azu
 
 ## Development
 
-The goal is to suport all actions in the Azure Blob Storage library [https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api](Rest API) - PRs welcome :) 
+The goal is to suport all actions in the Azure Blob Storage library [Rest API](https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api) - PRs welcome :) 
