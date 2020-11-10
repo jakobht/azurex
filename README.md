@@ -25,4 +25,4 @@ Documentation can be found at [https://hexdocs.pm/azurex](https://hexdocs.pm/azu
 
 ## Development
 
-The goal is to suport all actions in the Azure Blob Storage library [Rest API](https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api) - PRs welcome :) 
+The goal is to support all actions in the Azure Blob Storage library [Rest API](https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api) - PRs welcome :) 
