@@ -71,6 +71,22 @@ defmodule Azurex.Blob do
     end
   end
 
+  def list_blobs do
+    %HTTPoison.Request{
+      url: Config.api_url() <> "/#{Config.default_container()}?comp=list&restype=container"
+    }
+    |> SharedKey.sign(
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key()
+    )
+    |> HTTPoison.request()
+    |> case do
+      {:ok, %{body: xml, status_code: 200}} -> {:ok, xml}
+      {:ok, err} -> {:error, err}
+      {:error, err} -> {:error, err}
+    end
+  end
+
   def get_blob_url(name) do
     "#{Config.api_url()}/#{Config.default_container()}/#{name}"
   end
