@@ -10,7 +10,7 @@ Currently only supports:
 
 ## Installation
 
-[Available in Hex](https://hex.pm/docs/publish), the package can be installed
+[Available in Hex](https://hex.pm/packages/azurex), the package can be installed
 by adding `azurex` to your list of dependencies in `mix.exs` e.g.:
 
 ```elixir
@@ -20,6 +20,8 @@ def deps do
   ]
 end
 ```
+
+## Documentation
 
 Documentation can be found at [https://hexdocs.pm/azurex](https://hexdocs.pm/azurex). Or generated using [ExDoc](https://github.com/elixir-lang/ex_doc)
 
