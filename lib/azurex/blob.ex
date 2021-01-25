@@ -2,6 +2,8 @@ defmodule Azurex.Blob do
   alias Azurex.Blob.Config
   alias Azurex.Authorization.SharedKey
 
+  @typep optional_string() :: String.t() | nil
+
   def list_containers do
     %HTTPoison.Request{
       url: Config.api_url() <> "/?comp=list"
@@ -18,10 +20,10 @@ defmodule Azurex.Blob do
     end
   end
 
-  @spec put_blob(String.t(), binary, String.t(), keyword) ::
+  @spec put_blob(String.t(), binary, String.t(), optional_string()), keyword) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def put_blob(name, blob, content_type, opts \\ []) do
+  def put_blob(name, blob, content_type, container \\ nil, opts \\ []) do
     query =
       if timeout = Keyword.get(opts, :timeout),
         do: "?" <> URI.encode_query([{"timeout", timeout}]),
@@ -29,7 +31,7 @@ defmodule Azurex.Blob do
 
     %HTTPoison.Request{
       method: :put,
-      url: "#{Config.api_url()}/#{Config.default_container()}/#{name}#{query}",
+      url: "#{Config.api_url()}/#{get_container(container)}/#{name}#{query}",
       body: blob,
       headers: [
         {"x-ms-blob-type", "BlockBlob"}
@@ -51,13 +53,13 @@ defmodule Azurex.Blob do
     end
   end
 
-  @spec get_blob(String.t()) ::
+  @spec get_blob(String.t(), optional_string()) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def get_blob(name) do
+  def get_blob(name, container \\ nil) do
     %HTTPoison.Request{
       method: :get,
-      url: get_blob_url(name)
+      url: get_blob_url(name, container)
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -71,9 +73,12 @@ defmodule Azurex.Blob do
     end
   end
 
-  def list_blobs do
+  @spec list_blobs(optional_string()) ::
+          {:ok, binary()}
+          | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
+  def list_blobs(container \\ nil) do
     %HTTPoison.Request{
-      url: Config.api_url() <> "/#{Config.default_container()}?comp=list&restype=container"
+      url: Config.api_url() <> "/#{get_container(container)}?comp=list&restype=container"
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -87,7 +92,16 @@ defmodule Azurex.Blob do
     end
   end
 
-  def get_blob_url(name) do
-    "#{Config.api_url()}/#{Config.default_container()}/#{name}"
+  @spec get_blob_url(String.t(), optional_string()) :: String.t()
+  def get_blob_url(name, container \\ nil) do
+    "#{Config.api_url()}/#{get_container(container)}/#{name}"
   end
+
+  defp get_container(container \\ nil) do
+    case container do
+      nil -> Config.default_container()
+      _ -> container
+    end
+  end
+
 end
