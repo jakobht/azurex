@@ -2,6 +2,8 @@ defmodule Azurex.Blob do
   alias Azurex.Blob.Config
   alias Azurex.Authorization.SharedKey
 
+  @typep optional_string() :: String.t() | nil
+
   def list_containers do
     %HTTPoison.Request{
       url: Config.api_url() <> "/?comp=list"
@@ -18,7 +20,7 @@ defmodule Azurex.Blob do
     end
   end
 
-  @spec put_blob(String.t(), binary, String.t(), optional(String.t()), keyword) ::
+  @spec put_blob(String.t(), binary, String.t(), optional_string()), keyword) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def put_blob(name, blob, content_type, container \\ nil, opts \\ []) do
@@ -51,7 +53,7 @@ defmodule Azurex.Blob do
     end
   end
 
-  @spec get_blob(String.t(), optional(String.t())) ::
+  @spec get_blob(String.t(), optional_string()) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def get_blob(name, container \\ nil) do
@@ -71,7 +73,7 @@ defmodule Azurex.Blob do
     end
   end
 
-  @spec list_blobs(optional(String.t())) ::
+  @spec list_blobs(optional_string()) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def list_blobs(container \\ nil) do
@@ -90,7 +92,7 @@ defmodule Azurex.Blob do
     end
   end
 
-  @spec get_blob_url(String.t(), optional(String.t())) :: String.t()
+  @spec get_blob_url(String.t(), optional_string()) :: String.t()
   def get_blob_url(name, container \\ nil) do
     "#{Config.api_url()}/#{get_container(container)}/#{name}"
   end
