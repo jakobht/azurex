@@ -97,7 +97,7 @@ defmodule Azurex.Blob do
   end
 
   defp join_parameters(parameters) do
-    Enum.map(parameters, fn {name, value} -> "&" <> name <> "=" <> value)
+    Enum.map(parameters, fn {name, value} -> "&" <> name <> "=" <> value end)
     |> Enum.join("")
   end
 
