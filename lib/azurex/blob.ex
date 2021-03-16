@@ -76,9 +76,9 @@ defmodule Azurex.Blob do
   @spec list_blobs(optional_string) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def list_blobs(container \\ nil) do
+  def list_blobs(container \\ nil, uri_parameters \\ []) do
     %HTTPoison.Request{
-      url: Config.api_url() <> "/#{get_container(container)}?comp=list&restype=container"
+      url: Config.api_url() <> "/#{get_container(container)}?comp=list&restype=container" <> join_parameters(uri_parameters)
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -90,6 +90,15 @@ defmodule Azurex.Blob do
       {:ok, err} -> {:error, err}
       {:error, err} -> {:error, err}
     end
+  end
+
+  defp join_parameters([]) do
+    ""
+  end
+
+  defp join_parameters(parameters) do
+    Enum.map(parameters, fn {name, value} -> "&" <> name <> "=" <> value end)
+    |> Enum.join("")
   end
 
   @spec get_blob_url(String.t(), optional_string) :: String.t()
