@@ -55,9 +55,11 @@ defmodule Azurex.Authorization.SharedKey do
     put_signature(request, signature, storage_account_name, storage_account_key)
   end
 
+  @default_timezone "GMT"
   defp put_standard_headers(request, content_type) do
     now =
-      Timex.now("GMT") |> Timex.format!("{WDshort}, {0D} {Mshort} {YYYY} {h24}:{m}:{s} {Zname}")
+      Timex.now(@zone_name)
+      |> Timex.format!("{WDshort}, {0D} {Mshort} {YYYY} {h24}:{m}:{s} #{@default_timezone}")
 
     headers =
       if content_type,
