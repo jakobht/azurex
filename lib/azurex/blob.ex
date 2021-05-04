@@ -1,4 +1,7 @@
 defmodule Azurex.Blob do
+  @moduledoc """
+  Implementation of Azure Blob Storage.
+  """
   alias Azurex.Blob.Config
   alias Azurex.Authorization.SharedKey
 

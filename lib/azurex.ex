@@ -1,5 +1,6 @@
 defmodule Azurex do
   @moduledoc """
-  Implementation of Azure Blob Storage.
+  Azure connection library.
+  Currently only implements Blob Storage.
   """
 end
