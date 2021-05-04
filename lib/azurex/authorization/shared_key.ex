@@ -58,7 +58,7 @@ defmodule Azurex.Authorization.SharedKey do
   defp put_standard_headers(request, content_type) do
     # Needed for same timezone polarity in Timex 3.7
     now =
-      "Etc/GMT"
+      "Etc/UTC"
       |> Timex.now()
       |> formatted()
 
@@ -81,6 +81,8 @@ defmodule Azurex.Authorization.SharedKey do
     |> Timex.format!("{WDshort}, {0D} {Mshort} {YYYY} {h24}:{m}:{s} {Zname}")
     # x-ms-date field expects `GMT`
     |> String.replace("Etc/GMT", "GMT")
+    # Just in case we have old
+    |> String.replace("Etc/UTC", "GMT")
   end
 
   defp get_method(request), do: request.method |> Atom.to_string() |> String.upcase()
