@@ -1,5 +1,5 @@
 defmodule Azurex do
   @moduledoc """
-  Documentation for Azurex.
+  Implementation of Azure Blob Storage.
   """
 end
