@@ -27,14 +27,11 @@ defmodule Azurex.Blob do
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def put_blob(name, blob, content_type, container \\ nil, opts \\ []) do
-    query =
-      if timeout = Keyword.get(opts, :timeout),
-        do: "?" <> URI.encode_query([{"timeout", timeout}]),
-        else: ""
 
     %HTTPoison.Request{
       method: :put,
-      url: "#{Config.api_url()}/#{get_container(container)}/#{name}#{query}",
+      url: get_blob_url(name, container),
+      params: opts,
       body: blob,
       headers: [
         {"x-ms-blob-type", "BlockBlob"}
@@ -100,9 +97,14 @@ defmodule Azurex.Blob do
     end
   end
 
-  @spec get_blob_url(String.t(), optional_string) :: String.t()
-  def get_blob_url(name, container \\ nil) do
-    "#{Config.api_url()}/#{get_container(container)}/#{name}"
+  @spec get_blob_url(optional_string) :: String.t()
+  def get_blob_url(container) do
+    "#{Config.api_url()}/#{get_container(container)}"
+  end
+
+  @spec get_blob_url(optional_string, String.t()) :: String.t()
+  def get_blob_url(container, name) do
+    "#{get_blob_url(container)}/#{name}"
   end
 
   defp get_container(container) do

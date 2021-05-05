@@ -11,13 +11,20 @@ defmodule Azurex.Authorization.SharedKey do
     storage_account_name = Keyword.fetch!(opts, :storage_account_name)
     storage_account_key = Keyword.fetch!(opts, :storage_account_key)
     content_type = Keyword.get(opts, :content_type)
+    date = Keyword.get(opts, :date, DateTime.utc_now())
 
-    request = put_standard_headers(request, content_type)
+    request =
+      put_standard_headers(
+        request,
+        content_type,
+        date
+      )
 
     method = get_method(request)
     size = get_size(request)
-    headers = get_headers_signature(request)
-    uri_signature = get_uri_signature(request, storage_account_name)
+    headers = format_headers(request.headers)
+    uri = format_uri(request.url, storage_account_name)
+    params = format_params(request.params)
 
     signature =
       [
@@ -48,18 +55,15 @@ defmodule Azurex.Authorization.SharedKey do
         # CanonicalizedHeaders
         headers,
         # CanonicalizedResource
-        uri_signature
+        uri
+        | params
       ]
       |> Enum.join("\n")
 
     put_signature(request, signature, storage_account_name, storage_account_key)
   end
 
-  defp put_standard_headers(request, content_type) do
-    now =
-      DateTime.utc_now()
-      |> formatted()
-
+  defp put_standard_headers(request, content_type, date) do
     headers =
       if content_type,
         do: [{"content-type", content_type} | request.headers],
@@ -67,14 +71,14 @@ defmodule Azurex.Authorization.SharedKey do
 
     headers = [
       {"x-ms-version", "2019-12-12"},
-      {"x-ms-date", now}
+      {"x-ms-date", format_date(date)}
       | headers
     ]
 
     struct(request, headers: headers)
   end
 
-  def formatted(%DateTime{zone_abbr: "UTC"} = date_time) do
+  def format_date(%DateTime{zone_abbr: "UTC"} = date_time) do
     date_time
     |> Calendar.strftime("%a, %d %b %Y %H:%M:%S GMT")
   end
@@ -86,32 +90,37 @@ defmodule Azurex.Authorization.SharedKey do
     if size != 0, do: size, else: ""
   end
 
-  defp get_headers_signature(request) do
-    request.headers
+  defp format_headers(headers) do
+    headers
     |> Enum.map(fn {k, v} -> {String.downcase(k), v} end)
     |> Enum.filter(fn {k, _v} -> String.starts_with?(k, "x-ms-") end)
     |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
     |> Enum.sort_by(fn {k, _v} -> k end)
     |> Enum.map(fn {k, v} ->
       v = v |> Enum.sort() |> Enum.join(",")
-      k <> ":" <> v
+      "#{k}:#{v}"
     end)
     |> Enum.join("\n")
   end
 
-  defp get_uri_signature(request, storage_account_name) do
-    uri = URI.parse(request.url)
-    path = uri.path || "/"
-    query = URI.query_decoder(uri.query || "")
+  defp format_uri(uri_str, storage_account_name) do
+    path =
+      URI.parse(uri_str)
+      |> Map.get(:path, "/")
 
     [
       "/",
       storage_account_name,
       path
-      | Enum.map(query, fn {k, v} ->
-          ["\n", k, ":", v]
-        end)
     ]
+  end
+
+  defp format_params(params) do
+    params
+    |> Enum.sort()
+    |> Enum.map(fn {k, v} ->
+      [to_string(k), ":", to_string(v)]
+    end)
   end
 
   defp put_signature(request, signature, storage_account_name, storage_account_key) do
