@@ -2,8 +2,8 @@ sudo: false
 
 language: elixir
 
-elixir: "1.9"
-opt_release: "22.0"
+elixir: "1.11"
+opt_release: "23.0"
 
 script:
   - |

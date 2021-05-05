@@ -5,7 +5,7 @@ defmodule Azurex.MixProject do
     [
       app: :azurex,
       version: "0.1.3",
-      elixir: "~> 1.9",
+      elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
