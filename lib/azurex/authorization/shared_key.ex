@@ -56,10 +56,8 @@ defmodule Azurex.Authorization.SharedKey do
   end
 
   defp put_standard_headers(request, content_type) do
-    # Needed for same timezone polarity in Timex 3.7
     now =
-      "Etc/UTC"
-      |> Timex.now()
+      DateTime.utc_now()
       |> formatted()
 
     headers =
@@ -76,13 +74,9 @@ defmodule Azurex.Authorization.SharedKey do
     struct(request, headers: headers)
   end
 
-  def formatted(date_time) do
+  def formatted(%DateTime{zone_abbr: "UTC"} = date_time) do
     date_time
-    |> Timex.format!("{WDshort}, {0D} {Mshort} {YYYY} {h24}:{m}:{s} {Zname}")
-    # x-ms-date field expects `GMT`
-    |> String.replace("Etc/GMT", "GMT")
-    # Just in case we have old
-    |> String.replace("Etc/UTC", "GMT")
+    |> Calendar.strftime("%a, %d %b %Y %H:%M:%S GMT")
   end
 
   defp get_method(request), do: request.method |> Atom.to_string() |> String.upcase()

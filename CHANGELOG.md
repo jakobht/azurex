@@ -20,9 +20,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 Azure is expecting the `x-ms-date` header to have the trailing timezone code as `GMT`.
 
-`timex` 3.7 requires the timezone code `Etc/GMT` if we want to keep the polarity of the offset the same.
-
-To fix this, have changed the timezone to be `Etc/GMT` and `String.replace` it to `GMT`.
+Migrated to the elixir DateTime and Calendar tools and removed `timex` dependency.
 
 Also, added a test for the above.
 
