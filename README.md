@@ -1,10 +1,13 @@
 ![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jakobht/azurex/Elixir%20CI) ![Hex.pm](https://img.shields.io/hexpm/v/azurex)
+
 # Azurex
 
 Implementation of the Azure Blob Storage [Rest API](https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api) for Elixir.
 
 ## Supported actions
-Currently only supports:
+
+Currently supports:
+
 1. Downloading blobs
 2. Uploading blobs
 
@@ -19,6 +22,17 @@ def deps do
     {:azurex, "~> 0.1.3"}
   ]
 end
+```
+
+## Configuration
+
+```elixir
+config :azurex, Azurex.Blob.Config,
+  api_url: "http://{name}.blob.core.windows.net",
+  default_container: "default container",
+  storage_account_name: "name",
+  storage_account_key: "base64 encoded key",
+  storage_account_connection_string: "connection string"
 ```
 
 ## Documentation
