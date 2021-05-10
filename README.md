@@ -16,7 +16,7 @@ by adding `azurex` to your list of dependencies in `mix.exs` e.g.:
 ```elixir
 def deps do
   [
-    {:azurex, "~> 0.1.0"}
+    {:azurex, "~> 0.1.3"}
   ]
 end
 ```
@@ -27,4 +27,4 @@ Documentation can be found at [https://hexdocs.pm/azurex](https://hexdocs.pm/azu
 
 ## Development
 
-The goal is to support all actions in the Azure Blob Storage [Rest API](https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api) - PRs welcome :) 
+The goal is to support all actions in the Azure Blob Storage [Rest API](https://docs.microsoft.com/en-us/rest/api/storageservices/blob-service-rest-api) - PRs welcome :)

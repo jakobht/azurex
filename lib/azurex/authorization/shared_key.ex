@@ -57,7 +57,8 @@ defmodule Azurex.Authorization.SharedKey do
 
   defp put_standard_headers(request, content_type) do
     now =
-      Timex.now("GMT") |> Timex.format!("{WDshort}, {0D} {Mshort} {YYYY} {h24}:{m}:{s} {Zname}")
+      DateTime.utc_now()
+      |> formatted()
 
     headers =
       if content_type,
@@ -71,6 +72,12 @@ defmodule Azurex.Authorization.SharedKey do
     ]
 
     struct(request, headers: headers)
+  end
+
+  def formatted(%DateTime{zone_abbr: "UTC"} = date_time) do
+    date_time
+    # We use Timex strftime, as Calendar.strftime in the std is only availible from Elixir 1.11
+    |> Timex.Format.DateTime.Formatters.Strftime.format!("%a, %d %b %Y %H:%M:%S GMT")
   end
 
   defp get_method(request), do: request.method |> Atom.to_string() |> String.upcase()

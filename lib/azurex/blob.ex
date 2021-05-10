@@ -1,4 +1,7 @@
 defmodule Azurex.Blob do
+  @moduledoc """
+  Implementation of Azure Blob Storage.
+  """
   alias Azurex.Blob.Config
   alias Azurex.Authorization.SharedKey
 
@@ -78,7 +81,10 @@ defmodule Azurex.Blob do
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def list_blobs(container \\ nil, uri_parameters \\ []) do
     %HTTPoison.Request{
-      url: Config.api_url() <> "/#{get_container(container)}?comp=list&restype=container" <> join_parameters(uri_parameters)
+      url:
+        Config.api_url() <>
+          "/#{get_container(container)}?comp=list&restype=container" <>
+          join_parameters(uri_parameters)
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -112,5 +118,4 @@ defmodule Azurex.Blob do
       _ -> container
     end
   end
-
 end
