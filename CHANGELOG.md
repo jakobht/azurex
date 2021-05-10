@@ -20,7 +20,7 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 Azure is expecting the `x-ms-date` header to have the trailing timezone code as `GMT`.
 
-Migrated to the elixir DateTime and Calendar tools and removed `timex` dependency.
+Migrated to strftime in `timex` when elixir 1.11 is more acessible in different repos we will migrate to the Elixir DateTime and Calendar tools and remove `timex` dependency.
 
 Also, added a test for the above.
 
