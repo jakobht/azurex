@@ -23,15 +23,19 @@ defmodule Azurex.Blob do
     end
   end
 
+  @doc """
+  Upload a blob
+
+  Currenty it lacks the possibility of sending parameters but using the default container.
+  """
   @spec put_blob(String.t(), binary, String.t(), optional_string, keyword) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def put_blob(name, blob, content_type, container \\ nil, opts \\ []) do
-
+  def put_blob(name, blob, content_type, container \\ nil, params \\ []) do
     %HTTPoison.Request{
       method: :put,
-      url: get_url(name, container),
-      params: opts,
+      url: get_url(container, name),
+      params: params,
       body: blob,
       headers: [
         {"x-ms-blob-type", "BlockBlob"}
@@ -53,13 +57,19 @@ defmodule Azurex.Blob do
     end
   end
 
+  @doc """
+  Download a blob
+
+  Currenty it lacks the possibility of sending parameters but using the default container.
+  """
   @spec get_blob(String.t(), optional_string) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def get_blob(name, container \\ nil) do
+  def get_blob(name, container \\ nil, params \\ []) do
     %HTTPoison.Request{
       method: :get,
-      url: get_url(name, container)
+      url: get_url(container, name),
+      params: params
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -76,14 +86,14 @@ defmodule Azurex.Blob do
   @spec list_blobs(optional_string) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def list_blobs(container \\ nil, uri_parameters \\ []) do
+  def list_blobs(container \\ nil, params \\ []) do
     %HTTPoison.Request{
       url: "#{Config.api_url()}/#{get_container(container)}",
       params:
         [
           comp: "list",
           restype: "container"
-        ] ++ uri_parameters
+        ] ++ params
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -107,10 +117,7 @@ defmodule Azurex.Blob do
     "#{get_url(container)}/#{name}"
   end
 
-  defp get_container(container) do
-    case container do
-      nil -> Config.default_container()
-      _ -> container
-    end
+  def get_container(container) do
+    container || Config.default_container()
   end
 end
