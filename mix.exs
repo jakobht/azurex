@@ -5,7 +5,7 @@ defmodule Azurex.MixProject do
     [
       app: :azurex,
       version: "0.1.3",
-      elixir: "~> 1.11",
+      elixir: "~> 1.9",
       start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
@@ -27,7 +27,8 @@ defmodule Azurex.MixProject do
     [
       {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
       {:httpoison, "~> 1.6"},
-      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false}
+      {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:timex, "~> 3.7"}
     ]
   end
 
