@@ -1,6 +1,8 @@
 defmodule Azurex.Blob do
   @moduledoc """
   Implementation of Azure Blob Storage.
+
+  In the functions below set container as nil to use the one configured in `Azurex.Blob.Config`.
   """
   alias Azurex.Blob.Config
   alias Azurex.Authorization.SharedKey
@@ -24,9 +26,25 @@ defmodule Azurex.Blob do
   end
 
   @doc """
-  Upload a blob
+  Upload a blob.
 
-  Currenty it lacks the possibility of sending parameters but using the default container.
+  ## Examples
+
+      iex> put_blob("filename.txt", "file contents", "text/plain")
+      :ok
+
+      iex> put_blob("filename.txt", "file contents", "text/plain", "container")
+      :ok
+
+      iex> put_blob("filename.txt", "file contents", "text/plain", "container")
+      :ok
+
+      iex> put_blob("filename.txt", "file contents", "text/plain", nil, timeout: 10)
+      :ok
+
+      iex> put_blob("filename.txt", "file contents", "text/plain")
+      {:error, %HTTPoison.Response{}}
+
   """
   @spec put_blob(String.t(), binary, String.t(), optional_string, keyword) ::
           :ok
@@ -60,7 +78,23 @@ defmodule Azurex.Blob do
   @doc """
   Download a blob
 
-  Currenty it lacks the possibility of sending parameters but using the default container.
+  ## Examples
+
+      iex> get_blob("filename.txt")
+      {:ok, "file contents"}
+
+      iex> get_blob("filename.txt", "container")
+      {:ok, "file contents"}
+
+      iex> get_blob("filename.txt", "container")
+      {:ok, "file contents"}
+
+      iex> get_blob("filename.txt", nil, timeout: 10)
+      {:ok, "file contents"}
+
+      iex> get_blob("filename.txt")
+      {:error, %HTTPoison.Response{}}
+
   """
   @spec get_blob(String.t(), optional_string) ::
           {:ok, binary()}
@@ -83,6 +117,17 @@ defmodule Azurex.Blob do
     end
   end
 
+  @doc """
+  Lists all blobs in a container
+
+  ## Examples
+
+      iex> Azurex.Blob.list_blobs()
+      {:ok, "\uFEFF<?xml ...."}
+
+      iex> Azurex.Blob.list_blobs()
+      {:error, %HTTPoison.Response{}}
+  """
   @spec list_blobs(optional_string) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
@@ -107,17 +152,23 @@ defmodule Azurex.Blob do
     end
   end
 
+  @doc """
+  Returns the url for a container (defaults to the one in `Azurex.Blob.Config`)
+  """
   @spec get_url(optional_string) :: String.t()
   def get_url(container) do
     "#{Config.api_url()}/#{get_container(container)}"
   end
 
+  @doc """
+  Returns the url for a file in a container (defaults to the one in `Azurex.Blob.Config`)
+  """
   @spec get_url(optional_string, String.t()) :: String.t()
-  def get_url(container, name) do
-    "#{get_url(container)}/#{name}"
+  def get_url(container, blob_name) do
+    "#{get_url(container)}/#{blob_name}"
   end
 
-  def get_container(container) do
+  defp get_container(container) do
     container || Config.default_container()
   end
 end
