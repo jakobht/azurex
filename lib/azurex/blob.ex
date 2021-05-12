@@ -30,7 +30,7 @@ defmodule Azurex.Blob do
 
     %HTTPoison.Request{
       method: :put,
-      url: get_blob_url(name, container),
+      url: get_url(name, container),
       params: opts,
       body: blob,
       headers: [
@@ -59,7 +59,7 @@ defmodule Azurex.Blob do
   def get_blob(name, container \\ nil) do
     %HTTPoison.Request{
       method: :get,
-      url: get_blob_url(name, container)
+      url: get_url(name, container)
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -97,14 +97,14 @@ defmodule Azurex.Blob do
     end
   end
 
-  @spec get_blob_url(optional_string) :: String.t()
-  def get_blob_url(container) do
+  @spec get_url(optional_string) :: String.t()
+  def get_url(container) do
     "#{Config.api_url()}/#{get_container(container)}"
   end
 
-  @spec get_blob_url(optional_string, String.t()) :: String.t()
-  def get_blob_url(container, name) do
-    "#{get_blob_url(container)}/#{name}"
+  @spec get_url(optional_string, String.t()) :: String.t()
+  def get_url(container, name) do
+    "#{get_url(container)}/#{name}"
   end
 
   defp get_container(container) do
