@@ -8,13 +8,9 @@ defmodule Azurex.BobIntegrationTests do
   @integration_testing_container "integrationtestingcontainer"
 
   describe "upload and download a blob" do
-    setup do
-      escaped_time = DateTime.utc_now() |> DateTime.to_iso8601() |> String.replace(":", ".")
+    test "using default container" do
+      blob_name = make_blob_name()
 
-      [blob_name: "#{escaped_time}.txt"]
-    end
-
-    test "using default container", %{blob_name: blob_name} do
       assert Blob.put_blob(
                blob_name,
                @sample_file_contents,
@@ -24,7 +20,9 @@ defmodule Azurex.BobIntegrationTests do
       assert Blob.get_blob(blob_name) == {:ok, @sample_file_contents}
     end
 
-    test "passing container", %{blob_name: blob_name} do
+    test "passing container" do
+      blob_name = make_blob_name()
+
       assert Blob.put_blob(
                blob_name,
                @sample_file_contents,
@@ -38,7 +36,9 @@ defmodule Azurex.BobIntegrationTests do
              ) == {:ok, @sample_file_contents}
     end
 
-    test "passing container and params", %{blob_name: blob_name} do
+    test "passing container and params" do
+      blob_name = make_blob_name()
+
       assert Blob.put_blob(
                blob_name,
                @sample_file_contents,
@@ -69,5 +69,14 @@ defmodule Azurex.BobIntegrationTests do
       assert {:ok, _result_not_checked} =
                Blob.list_blobs(@integration_testing_container, timeout: 10)
     end
+  end
+
+  defp make_blob_name do
+    escaped_time =
+      DateTime.utc_now()
+      |> DateTime.to_iso8601()
+      |> String.replace(":", ".")
+
+    "#{escaped_time}.txt"
   end
 end
