@@ -28,10 +28,11 @@ end
 
 ```elixir
 config :azurex, Azurex.Blob.Config,
-  api_url: "http://{name}.blob.core.windows.net",
-  default_container: "defaultcontainer",
+  api_url: "https://sample.blob.core.windows.net", # Optional
+  default_container: "defaultcontainer", # Optional
   storage_account_name: "name",
-  storage_account_key: "access key"
+  storage_account_key: "access key",
+  storage_account_connection_string: "Storage=Account;Connection=String" # Required if storage account `name` and `key` not set
 ```
 
 ## Documentation
