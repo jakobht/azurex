@@ -13,12 +13,7 @@ defmodule Azurex.Authorization.SharedKey do
     content_type = Keyword.get(opts, :content_type)
     date = Keyword.get(opts, :date, DateTime.utc_now())
 
-    request =
-      put_standard_headers(
-        request,
-        content_type,
-        date
-      )
+    request = put_standard_headers(request, content_type, date)
 
     method = get_method(request)
     size = get_size(request)
