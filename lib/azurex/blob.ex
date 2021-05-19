@@ -36,9 +36,6 @@ defmodule Azurex.Blob do
       iex> put_blob("filename.txt", "file contents", "text/plain", "container")
       :ok
 
-      iex> put_blob("filename.txt", "file contents", "text/plain", "container")
-      :ok
-
       iex> put_blob("filename.txt", "file contents", "text/plain", nil, timeout: 10)
       :ok
 
@@ -81,9 +78,6 @@ defmodule Azurex.Blob do
   ## Examples
 
       iex> get_blob("filename.txt")
-      {:ok, "file contents"}
-
-      iex> get_blob("filename.txt", "container")
       {:ok, "file contents"}
 
       iex> get_blob("filename.txt", "container")
