@@ -26,6 +26,8 @@ end
 
 ## Configuration
 
+The configuration should _either_ define `storage_account_name` and `storage_account_key` _or_ `storage_account_connection_string`.
+
 ```elixir
 config :azurex, Azurex.Blob.Config,
   api_url: "https://sample.blob.core.windows.net", # Optional

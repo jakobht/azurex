@@ -23,6 +23,10 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 - Fixed handling of multiple query parameters;
 - Fixed config `storage_account_connection_string` not doing anything.
 
+### Potential Breaking
+
+- Renamed `Azurex.Blob.get_blob_url(name, container \\ nil)` to `Azurex.Blob.get_url(container, name)`
+
 ## 0.1.3
 
 ### Added/Changed
