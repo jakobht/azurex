@@ -22,7 +22,7 @@ defmodule Azurex.Blob.ConfigTest do
       assert storage_account_name() == "samplename"
     end
 
-    test "returns url based on storage_account_connection_string env" do
+    test "returns based on storage_account_connection_string env" do
       put_config(storage_account_connection_string: @sample_connection_string)
       assert storage_account_name() == "cs_samplename"
     end
@@ -40,7 +40,7 @@ defmodule Azurex.Blob.ConfigTest do
       assert storage_account_key() == "sample key"
     end
 
-    test "returns url based on storage_account_connection_string env" do
+    test "returns based on storage_account_connection_string env" do
       put_config(storage_account_connection_string: @sample_connection_string)
       assert storage_account_key() == "cs_sample_key"
     end
@@ -78,6 +78,14 @@ defmodule Azurex.Blob.ConfigTest do
     test "returns url based on storage_account_connection_string env" do
       put_config(storage_account_connection_string: @sample_connection_string)
       assert api_url() == "https://cs_samplename.blob.core.windows.net"
+    end
+
+    test "returns url based on BlobEndPoint in storage_account_connection_string env" do
+      connection_string =
+        @sample_connection_string <> ";BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1"
+
+      put_config(storage_account_connection_string: connection_string)
+      assert api_url() == "http://127.0.0.1:10000/devstoreaccount1"
     end
 
     test "error no env set" do

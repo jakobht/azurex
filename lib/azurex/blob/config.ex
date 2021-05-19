@@ -16,9 +16,10 @@ defmodule Azurex.Blob.Config do
   """
   @spec api_url :: String.t()
   def api_url do
-    case Keyword.get(conf(), :api_url) do
-      nil -> "https://#{storage_account_name()}.blob.core.windows.net"
-      api_url -> api_url
+    cond do
+      api_url = Keyword.get(conf(), :api_url) -> api_url
+      api_url = get_connection_string_value("BlobEndpoint") -> api_url
+      true -> "https://#{storage_account_name()}.blob.core.windows.net"
     end
   end
 
