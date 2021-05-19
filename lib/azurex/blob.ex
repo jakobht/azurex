@@ -1,6 +1,8 @@
 defmodule Azurex.Blob do
   @moduledoc """
   Implementation of Azure Blob Storage.
+
+  In the functions below set container as nil to use the one configured in `Azurex.Blob.Config`.
   """
   alias Azurex.Blob.Config
   alias Azurex.Authorization.SharedKey
@@ -23,18 +25,32 @@ defmodule Azurex.Blob do
     end
   end
 
+  @doc """
+  Upload a blob.
+
+  ## Examples
+
+      iex> put_blob("filename.txt", "file contents", "text/plain")
+      :ok
+
+      iex> put_blob("filename.txt", "file contents", "text/plain", "container")
+      :ok
+
+      iex> put_blob("filename.txt", "file contents", "text/plain", nil, timeout: 10)
+      :ok
+
+      iex> put_blob("filename.txt", "file contents", "text/plain")
+      {:error, %HTTPoison.Response{}}
+
+  """
   @spec put_blob(String.t(), binary, String.t(), optional_string, keyword) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def put_blob(name, blob, content_type, container \\ nil, opts \\ []) do
-    query =
-      if timeout = Keyword.get(opts, :timeout),
-        do: "?" <> URI.encode_query([{"timeout", timeout}]),
-        else: ""
-
+  def put_blob(name, blob, content_type, container \\ nil, params \\ []) do
     %HTTPoison.Request{
       method: :put,
-      url: "#{Config.api_url()}/#{get_container(container)}/#{name}#{query}",
+      url: get_url(container, name),
+      params: params,
       body: blob,
       headers: [
         {"x-ms-blob-type", "BlockBlob"}
@@ -56,13 +72,32 @@ defmodule Azurex.Blob do
     end
   end
 
+  @doc """
+  Download a blob
+
+  ## Examples
+
+      iex> get_blob("filename.txt")
+      {:ok, "file contents"}
+
+      iex> get_blob("filename.txt", "container")
+      {:ok, "file contents"}
+
+      iex> get_blob("filename.txt", nil, timeout: 10)
+      {:ok, "file contents"}
+
+      iex> get_blob("filename.txt")
+      {:error, %HTTPoison.Response{}}
+
+  """
   @spec get_blob(String.t(), optional_string) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def get_blob(name, container \\ nil) do
+  def get_blob(name, container \\ nil, params \\ []) do
     %HTTPoison.Request{
       method: :get,
-      url: get_blob_url(name, container)
+      url: get_url(container, name),
+      params: params
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -76,15 +111,28 @@ defmodule Azurex.Blob do
     end
   end
 
+  @doc """
+  Lists all blobs in a container
+
+  ## Examples
+
+      iex> Azurex.Blob.list_blobs()
+      {:ok, "\uFEFF<?xml ...."}
+
+      iex> Azurex.Blob.list_blobs()
+      {:error, %HTTPoison.Response{}}
+  """
   @spec list_blobs(optional_string) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def list_blobs(container \\ nil, uri_parameters \\ []) do
+  def list_blobs(container \\ nil, params \\ []) do
     %HTTPoison.Request{
-      url:
-        Config.api_url() <>
-          "/#{get_container(container)}?comp=list&restype=container" <>
-          join_parameters(uri_parameters)
+      url: "#{Config.api_url()}/#{get_container(container)}",
+      params:
+        [
+          comp: "list",
+          restype: "container"
+        ] ++ params
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -98,24 +146,23 @@ defmodule Azurex.Blob do
     end
   end
 
-  defp join_parameters([]) do
-    ""
+  @doc """
+  Returns the url for a container (defaults to the one in `Azurex.Blob.Config`)
+  """
+  @spec get_url(optional_string) :: String.t()
+  def get_url(container) do
+    "#{Config.api_url()}/#{get_container(container)}"
   end
 
-  defp join_parameters(parameters) do
-    Enum.map(parameters, fn {name, value} -> "&" <> name <> "=" <> value end)
-    |> Enum.join("")
+  @doc """
+  Returns the url for a file in a container (defaults to the one in `Azurex.Blob.Config`)
+  """
+  @spec get_url(optional_string, String.t()) :: String.t()
+  def get_url(container, blob_name) do
+    "#{get_url(container)}/#{blob_name}"
   end
 
-  @spec get_blob_url(String.t(), optional_string) :: String.t()
-  def get_blob_url(name, container \\ nil) do
-    "#{Config.api_url()}/#{get_container(container)}/#{name}"
-  end
-
-  defp get_container(container \\ nil) do
-    case container do
-      nil -> Config.default_container()
-      _ -> container
-    end
+  defp get_container(container) do
+    container || Config.default_container()
   end
 end
