@@ -43,10 +43,10 @@ defmodule Azurex.Blob do
       {:error, %HTTPoison.Response{}}
 
   """
-  @spec put_blob(String.t(), binary, String.t(), optional_string, keyword) ::
-          :ok
-          | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def put_blob(name, blob, content_type, container \\ nil, params \\ []) do
+  def put_blob(name, blob, content_type, container \\ nil, credentials \\%{}, params \\ []) do
+    storage_account_name = Map.get(credentials, "storage_account_name", Config.storage_account_name())
+    storage_account_key = Map.get(credentials, "storage_account_key", Config.storage_account_key())
+
     %HTTPoison.Request{
       method: :put,
       url: get_url(container, name),
@@ -60,8 +60,8 @@ defmodule Azurex.Blob do
       options: [recv_timeout: :infinity]
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
+      storage_account_name: storage_account_name,
+      storage_account_key: storage_account_key,
       content_type: content_type
     )
     |> HTTPoison.request()
