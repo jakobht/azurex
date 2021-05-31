@@ -7,15 +7,13 @@ defmodule Azurex.Blob do
   alias Azurex.Blob.Config
   alias Azurex.Authorization.SharedKey
 
-  @typep optional_string :: String.t() | nil
-
-  def list_containers do
+  def list_containers(enviroment_name \\:default) do
     %HTTPoison.Request{
-      url: Config.api_url() <> "/?comp=list"
+      url: Config.api_url(enviroment_name) <> "/?comp=list"
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key()
+      storage_account_name: Config.storage_account_name(enviroment_name),
+      storage_account_key: Config.storage_account_key(enviroment_name)
     )
     |> HTTPoison.request()
     |> case do
@@ -43,10 +41,7 @@ defmodule Azurex.Blob do
       {:error, %HTTPoison.Response{}}
 
   """
-  def put_blob(name, blob, content_type, container \\ nil, credentials \\%{}, params \\ []) do
-    storage_account_name = Map.get(credentials, "storage_account_name", Config.storage_account_name())
-    storage_account_key = Map.get(credentials, "storage_account_key", Config.storage_account_key())
-
+  def put_blob(name, blob, content_type, container \\ nil, enviroment_name \\:default, params \\ []) do
     %HTTPoison.Request{
       method: :put,
       url: get_url(container, name),
@@ -60,8 +55,8 @@ defmodule Azurex.Blob do
       options: [recv_timeout: :infinity]
     }
     |> SharedKey.sign(
-      storage_account_name: storage_account_name,
-      storage_account_key: storage_account_key,
+      storage_account_name:  Config.storage_account_name(enviroment_name),
+      storage_account_key: Config.storage_account_key(enviroment_name),
       content_type: content_type
     )
     |> HTTPoison.request()
@@ -90,18 +85,16 @@ defmodule Azurex.Blob do
       {:error, %HTTPoison.Response{}}
 
   """
-  @spec get_blob(String.t(), optional_string) ::
-          {:ok, binary()}
-          | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def get_blob(name, container \\ nil, params \\ []) do
+
+  def get_blob(name, container, enviroment_name \\:default, params \\ []) do
     %HTTPoison.Request{
       method: :get,
       url: get_url(container, name),
       params: params
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key()
+      storage_account_name: Config.storage_account_name(enviroment_name),
+      storage_account_key: Config.storage_account_key(enviroment_name)
     )
     |> HTTPoison.request()
     |> case do
@@ -122,12 +115,10 @@ defmodule Azurex.Blob do
       iex> Azurex.Blob.list_blobs()
       {:error, %HTTPoison.Response{}}
   """
-  @spec list_blobs(optional_string) ::
-          {:ok, binary()}
-          | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def list_blobs(container \\ nil, params \\ []) do
+
+ def list_blobs(container, enviroment_name \\:default, params \\ []) do
     %HTTPoison.Request{
-      url: "#{Config.api_url()}/#{get_container(container)}",
+      url: "#{Config.api_url(enviroment_name)}/#{container}",
       params:
         [
           comp: "list",
@@ -135,8 +126,8 @@ defmodule Azurex.Blob do
         ] ++ params
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key()
+      storage_account_name: Config.storage_account_name(enviroment_name),
+      storage_account_key: Config.storage_account_key(enviroment_name)
     )
     |> HTTPoison.request()
     |> case do
@@ -146,23 +137,12 @@ defmodule Azurex.Blob do
     end
   end
 
+  @spec get_url(any, atom) :: nonempty_binary
   @doc """
   Returns the url for a container (defaults to the one in `Azurex.Blob.Config`)
   """
-  @spec get_url(optional_string) :: String.t()
-  def get_url(container) do
-    "#{Config.api_url()}/#{get_container(container)}"
-  end
 
-  @doc """
-  Returns the url for a file in a container (defaults to the one in `Azurex.Blob.Config`)
-  """
-  @spec get_url(optional_string, String.t()) :: String.t()
-  def get_url(container, blob_name) do
-    "#{get_url(container)}/#{blob_name}"
-  end
-
-  defp get_container(container) do
-    container || Config.default_container()
+  def get_url(container, enviroment_name \\:default) do
+    "#{Config.api_url(enviroment_name)}/#{container}"
   end
 end

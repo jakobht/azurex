@@ -10,61 +10,42 @@ defmodule Azurex.Blob.Config do
 
   defp conf, do: Application.get_env(:azurex, __MODULE__, [])
 
+  @spec api_url(atom) :: <<_::64, _::_*8>>
   @doc """
   Azure endpoint url, optional
   Defaults to `https://{name}.blob.core.windows.net` where `name` is the `storage_account_name`
   """
-  @spec api_url :: String.t()
-  def api_url do
-    cond do
-      api_url = Keyword.get(conf(), :api_url) -> api_url
-      api_url = get_connection_string_value("BlobEndpoint") -> api_url
-      true -> "https://#{storage_account_name()}.blob.core.windows.net"
-    end
+
+  def api_url(enviroment_name) do
+    "https://#{storage_account_name(enviroment_name)}.blob.core.windows.net"
   end
 
-  @doc """
-  Azure container name, optional.
-  """
-  @spec default_container :: String.t() | nil
-  def default_container do
-    Keyword.get(conf(), :default_container) ||
-      raise "Must specify `container` because the default container was not provided."
-  end
-
+  @spec storage_account_name(atom) :: any
   @doc """
   Azure storage account name.
   Required if `storage_account_connection_string` not set.
   """
-  @spec storage_account_name :: String.t()
-  def storage_account_name do
-    case Keyword.get(conf(), :storage_account_name) do
-      nil -> get_connection_string_value("AccountName")
-      storage_account_name -> storage_account_name
-    end || raise @missing_envs_error_msg
+
+  def storage_account_name(enviroment_name) do
+    case Keyword.get(conf(), enviroment_name) do
+      nil -> raise @missing_envs_error_msg
+      connection_string -> get_connection_string_value(connection_string, "AccountName")
+    end
   end
 
+  @spec storage_account_key(atom) :: binary
   @doc """
   Azure storage account access key. Base64 encoded, as provided by azure UI.
   Required if `storage_account_connection_string` not set.
   """
-  @spec storage_account_key :: binary
-  def storage_account_key do
-    case Keyword.get(conf(), :storage_account_key) do
-      nil -> get_connection_string_value("AccountKey")
-      key -> key
+
+  def storage_account_key(enviroment_name) do
+    case Keyword.get(conf(), enviroment_name) do
+      nil -> raise @missing_envs_error_msg
+      connection_string -> get_connection_string_value(connection_string, "AccountKey")
     end
-    |> Kernel.||(raise @missing_envs_error_msg)
     |> Base.decode64!()
   end
-
-  @doc """
-  Azure storage account connection string.
-  Required if `storage_account_name` or `storage_account_key` not set.
-  """
-  @spec storage_account_connection_string :: String.t() | nil
-  def storage_account_connection_string,
-    do: Keyword.get(conf(), :storage_account_connection_string)
 
   @spec parse_connection_string(nil | binary) :: map
   @doc """
@@ -93,9 +74,9 @@ defmodule Azurex.Blob.Config do
   @doc """
   Returns the value in the connection string given the string key.
   """
-  @spec get_connection_string_value(String.t()) :: String.t() | nil
-  def get_connection_string_value(key) do
-    storage_account_connection_string()
+
+  def get_connection_string_value(connection_string, key) do
+    connection_string
     |> parse_connection_string
     |> Map.get(key)
   end
