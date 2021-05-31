@@ -8,7 +8,7 @@ defmodule Azurex.Blob.Config do
   or `storage_account_connection_string` required.
   """
 
-  defp conf, do: Application.get_env(:azurex, __MODULE__, [])
+  defp conf, do: Application.get_env(:azurex, __MODULE__, []) |> Keyword.get(:enviroments)
 
   @spec api_url(atom) :: <<_::64, _::_*8>>
   @doc """

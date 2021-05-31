@@ -41,10 +41,10 @@ defmodule Azurex.Blob do
       {:error, %HTTPoison.Response{}}
 
   """
-  def put_blob(name, blob, content_type, container \\ nil, enviroment_name \\:default, params \\ []) do
+  def put_blob(name, blob, content_type, container, enviroment_name \\:default, params \\ []) do
     %HTTPoison.Request{
       method: :put,
-      url: get_url(container, name),
+      url: get_url(container, enviroment_name, name),
       params: params,
       body: blob,
       headers: [
@@ -89,7 +89,7 @@ defmodule Azurex.Blob do
   def get_blob(name, container, enviroment_name \\:default, params \\ []) do
     %HTTPoison.Request{
       method: :get,
-      url: get_url(container, name),
+      url: get_url(container, enviroment_name, name),
       params: params
     }
     |> SharedKey.sign(
@@ -118,7 +118,7 @@ defmodule Azurex.Blob do
 
  def list_blobs(container, enviroment_name \\:default, params \\ []) do
     %HTTPoison.Request{
-      url: "#{Config.api_url(enviroment_name)}/#{container}",
+      url: get_url(container, enviroment_name),
       params:
         [
           comp: "list",
@@ -141,8 +141,14 @@ defmodule Azurex.Blob do
   @doc """
   Returns the url for a container (defaults to the one in `Azurex.Blob.Config`)
   """
-
-  def get_url(container, enviroment_name \\:default) do
+  def get_url(container, enviroment_name) do
     "#{Config.api_url(enviroment_name)}/#{container}"
+  end
+
+  @doc """
+  Returns the url for a file in a container (defaults to the one in `Azurex.Blob.Config`)
+  """
+  def get_url(container, enviroment_name, blob_name) do
+    "#{get_url(container, enviroment_name)}/#{blob_name}"
   end
 end
