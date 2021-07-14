@@ -71,6 +71,12 @@ defmodule Azurex.BobIntegrationTests do
     end
   end
 
+  describe "test containers" do
+    test "list containers" do
+      assert {:ok, _results} = Blob.list_containers
+    end
+  end
+
   defp make_blob_name do
     escaped_time =
       DateTime.utc_now()
