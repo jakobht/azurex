@@ -10,6 +10,12 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 ---
+## 0.1.5
+
+### Added/Changed
+### Fixed
+
+- Updated the `Azurex.Blob.list_containers` to use HTTPoison params instead of hard coding it in the URL. Hard coding in the URL breaks in Elixir 1.12.
 
 ## 0.1.4
 
