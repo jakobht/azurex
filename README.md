@@ -1,5 +1,5 @@
 [![Elixir CI](https://github.com/jakobht/azurex/actions/workflows/elixir.yml/badge.svg)](https://github.com/jakobht/azurex/actions/workflows/elixir.yml)
-![Hex.pm](https://img.shields.io/hexpm/v/azurex)
+[![Hex.pm](https://img.shields.io/hexpm/v/azurex)](https://hex.pm/packages/azurex)
 
 # Azurex
 
