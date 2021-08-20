@@ -1,4 +1,5 @@
-![GitHub Workflow Status](https://img.shields.io/github/workflow/status/jakobht/azurex/Elixir%20CI) ![Hex.pm](https://img.shields.io/hexpm/v/azurex)
+[![Elixir CI](https://github.com/jakobht/azurex/actions/workflows/elixir.yml/badge.svg)](https://github.com/jakobht/azurex/actions/workflows/elixir.yml)
+![Hex.pm](https://img.shields.io/hexpm/v/azurex)
 
 # Azurex
 
