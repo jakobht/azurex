@@ -73,7 +73,7 @@ defmodule Azurex.BobIntegrationTests do
 
   describe "test containers" do
     test "list containers" do
-      assert {:ok, _results} = Blob.list_containers
+      assert {:ok, _results} = Blob.list_containers()
     end
   end
 
