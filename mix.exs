@@ -25,9 +25,9 @@ defmodule Azurex.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:dialyxir, "~> 1.0.0-rc.7", only: [:dev], runtime: false},
-      {:httpoison, "~> 1.6"},
+      {:dialyxir, "~> 1.1.0", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
+      {:httpoison, "~> 1.6"},
       {:timex, "~> 3.7"}
     ]
   end
