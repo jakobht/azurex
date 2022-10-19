@@ -1,4 +1,4 @@
-defmodule Azurex.BobIntegrationTests do
+defmodule Azurex.BlobIntegrationTests do
   use ExUnit.Case, async: false
   alias Azurex.Blob
 
@@ -53,6 +53,44 @@ defmodule Azurex.BobIntegrationTests do
                @integration_testing_container,
                timeout: 10
              ) == {:ok, @sample_file_contents}
+    end
+  end
+
+  describe "head blob" do
+    test "using default container" do
+      blob_name = make_blob_name()
+
+      assert Blob.put_blob(
+               blob_name,
+               @sample_file_contents,
+               "text/plain"
+             ) == :ok
+
+      assert {:ok, headers} = Blob.head_blob(blob_name)
+      headers = Map.new(headers)
+      assert headers["content-length"] == byte_size(@sample_file_contents) |> to_string()
+      assert headers["content-type"] == "text/plain"
+
+      assert headers["content-md5"] ==
+               :crypto.hash(:md5, @sample_file_contents) |> Base.encode64()
+    end
+
+    test "passing container" do
+      blob_name = make_blob_name()
+
+      assert Blob.put_blob(
+               blob_name,
+               @sample_file_contents,
+               "text/plain",
+               @integration_testing_container
+             ) == :ok
+
+      assert {:error, :not_found} = Blob.head_blob(blob_name)
+      assert {:ok, headers} = Blob.head_blob(blob_name, @integration_testing_container)
+      headers = Map.new(headers)
+
+      assert headers["content-md5"] ==
+               :crypto.hash(:md5, @sample_file_contents) |> Base.encode64()
     end
   end
 
