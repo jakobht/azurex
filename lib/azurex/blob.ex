@@ -95,21 +95,43 @@ defmodule Azurex.Blob do
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def get_blob(name, container \\ nil, params \\ []) do
-    %HTTPoison.Request{
-      method: :get,
-      url: get_url(container, name),
-      params: params
-    }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key()
-    )
+    blob_request(name, container, params)
     |> HTTPoison.request()
     |> case do
       {:ok, %{body: blob, status_code: 200}} -> {:ok, blob}
       {:ok, err} -> {:error, err}
       {:error, err} -> {:error, err}
     end
+  end
+
+  @doc """
+  Checks if a blob exists, and returns metadata for the blob if it does
+  """
+  @spec head_blob(String.t(), optional_string) ::
+          {:ok, list}
+          | {:error, :not_found | HTTPoison.Error.t() | HTTPoison.Response.t()}
+  def head_blob(name, container \\ nil, params \\ []) do
+    blob_request(name, container, params, [], :head)
+    |> HTTPoison.request()
+    |> case do
+      {:ok, %HTTPoison.Response{status_code: 200, headers: details}} -> {:ok, details}
+      {:ok, %HTTPoison.Response{status_code: 404}} -> {:error, :not_found}
+      {:ok, err} -> {:error, err}
+      {:error, err} -> {:error, err}
+    end
+  end
+
+  defp blob_request(name, container, params, options \\ [], method \\ :get) do
+    %HTTPoison.Request{
+      method: method,
+      url: get_url(container, name),
+      params: params,
+      options: options
+    }
+    |> SharedKey.sign(
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key()
+    )
   end
 
   @doc """
