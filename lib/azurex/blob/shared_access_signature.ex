@@ -17,7 +17,7 @@ defmodule Azurex.Blob.SharedAccessSignature do
       Defaults to :container
     - permissions: a list of permissions. Defaults to [:read]
     - from: a tuple to defined when the SAS url validity begins. Defaults to `now`.
-    - expiry: a tuple to set how long before the SAS url expires. Defaults to `{:hour, 1}`.
+    - expiry: a tuple to set how long before the SAS url expires. Defaults to `{:second, 3600}`.
 
   ## Examples
   - `SharedAccessSignature.sas_url("my_container", "/", permissions: [:write], expiry: {:day, 2})`
@@ -29,7 +29,7 @@ defmodule Azurex.Blob.SharedAccessSignature do
     resource_type = Keyword.get(opts, :resource_type, :container)
     permissions = Keyword.get(opts, :permissions, [:read])
     from = Keyword.get(opts, :from, DateTime.utc_now())
-    expiry = Keyword.get(opts, :expiry, {:hour, 1})
+    expiry = Keyword.get(opts, :expiry, {:second, 3600})
     resource = Path.join(container, resource)
 
     token =
