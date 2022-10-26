@@ -17,7 +17,7 @@ defmodule Azurex.Blob.SharedAccessSignatureTest do
   test "sas blob url" do
     assert sas_url(container(), blob(),
              from: now(),
-             expiry: {:day, 2},
+             expiry: {:second, 2 * 24 * 3600},
              permissions: [:read, :write]
            ) ==
              "https://storage_account.blob.core.windows.net/my_container/folder/blob.mp4?sv=2020-12-06&st=2022-10-10T10%3A10%3A00Z&se=2022-10-12T10%3A10%3A00Z&sr=c&sp=rw&sig=Y2vH1nKzPkQhMnEXzz1m9Bz3o%2FPhyS1nOQp91B5GK9k%3D"
