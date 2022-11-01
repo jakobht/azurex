@@ -18,8 +18,6 @@ defmodule Azurex.SasIntegrationTests do
 
       assert {:ok, %HTTPoison.Response{status_code: 200, body: "test_blob_content"}} =
                HTTPoison.get(url)
-
-      assert false
     end
   end
 end
