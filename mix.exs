@@ -4,8 +4,8 @@ defmodule Azurex.MixProject do
   def project do
     [
       app: :azurex,
-      version: "0.1.5",
-      elixir: "~> 1.9",
+      version: "1.0.0",
+      elixir: "~> 1.10",
       start_permanent: Mix.env() == :prod,
       description: description(),
       package: package(),
@@ -25,9 +25,9 @@ defmodule Azurex.MixProject do
   # Run "mix help deps" to learn about dependencies.
   defp deps do
     [
-      {:dialyxir, "~> 1.1.0", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.2.0", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:httpoison, "~> 1.6"},
+      {:httpoison, "~> 1.8"},
       {:timex, "~> 3.7"}
     ]
   end
