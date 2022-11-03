@@ -3,7 +3,6 @@ defmodule Azurex.SasIntegrationTests do
   alias Azurex.Blob.SharedAccessSignature
 
   @moduletag integration: true
-  @integration_testing_container "integrationtestingcontainer"
 
   setup do
     Application.put_env(:azurex, Azurex.Blob.Config,
