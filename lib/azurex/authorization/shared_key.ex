@@ -75,8 +75,7 @@ defmodule Azurex.Authorization.SharedKey do
 
   def format_date(%DateTime{zone_abbr: "UTC"} = date_time) do
     date_time
-    # We use Timex strftime, as Calendar.strftime in the std is only availible from Elixir 1.11
-    |> Timex.Format.DateTime.Formatters.Strftime.format!("%a, %d %b %Y %H:%M:%S GMT")
+    |> Calendar.strftime("%a, %d %b %Y %H:%M:%S GMT")
   end
 
   defp get_method(request), do: request.method |> Atom.to_string() |> String.upcase()
