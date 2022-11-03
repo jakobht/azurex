@@ -10,9 +10,24 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 ### Fixed
 
 ---
+
+## 1.0.0
+
+- Bump to version 1.0.0, has been used in production in several places
+
+### Added/Changed
+
+- Added support generating SAS urls to allow for limited access to the blob storage (PR #30, thanks @cblavier)
+- Added support for HEAD blob requests, to check if a blob exists without downloading the full blob (PR #31, thanks @ShahneRodgers)
+- Added better integration testing.
+- Updated dependencies
+
+### Fixed
+
 ## 0.1.5
 
 ### Added/Changed
+
 ### Fixed
 
 - Updated the `Azurex.Blob.list_containers` to use HTTPoison params instead of hard coding it in the URL. Hard coding in the URL breaks in Elixir 1.12.
