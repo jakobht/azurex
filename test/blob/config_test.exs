@@ -6,9 +6,11 @@ defmodule Azurex.Blob.ConfigTest do
 
   @sample_connection_string "DefaultEndpointsProtocol=https;AccountKey=Y3Nfc2FtcGxlX2tleQ==;AccountName=cs_samplename"
 
-  setup_all do
-    original_conf = Application.get_env(:azurex, Azurex.Blob.Config)
-    on_exit(fn -> Application.put_env(:azurex, Azurex.Blob.Config, original_conf) end)
+  setup do
+    Application.put_env(:azurex, Azurex.Blob.Config,
+      storage_account_connection_string:
+        "AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1"
+    )
   end
 
   defp put_config(config \\ []) do
@@ -64,6 +66,10 @@ defmodule Azurex.Blob.ConfigTest do
   end
 
   describe "api_url/0" do
+    test "returns api_url from config" do
+      assert api_url() == "http://127.0.0.1:10000/devstoreaccount1"
+    end
+
     test "returns configured env" do
       put_config(api_url: "https://example.com")
 
