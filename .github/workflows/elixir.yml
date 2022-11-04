@@ -77,6 +77,6 @@ jobs:
         run: npm install -g azurite
       - name: Run Azurite in Background
         shell: bash
-        run: azurite-table &
+        run: azurite-blob &
       - name: Run Tests
         run: mix test --include integration
