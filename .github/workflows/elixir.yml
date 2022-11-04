@@ -73,6 +73,10 @@ jobs:
           mix format --check-formatted
           mix compile --warnings-as-errors
           mix dialyzer --format github
-
+      - name: Install & run Azurite
+        run: npm install -g azurite
+      - name: Run Azurite in Background
+        shell: bash
+        run: azurite-table &
       - name: Run Tests
         run: mix test --include integration
