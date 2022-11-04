@@ -11,41 +11,41 @@ jobs:
     strategy:
       matrix:
         include:
-          - elixir: '1.14'
-            otp: '23'
-          - elixir: '1.14'
-            otp: '24'
-          - elixir: '1.14'
-            otp: '25'
+          - elixir: "1.14"
+            otp: "23"
+          - elixir: "1.14"
+            otp: "24"
+          - elixir: "1.14"
+            otp: "25"
             should_lint: true
 
-          - elixir: '1.13'
-            otp: '22'
-          - elixir: '1.13'
-            otp: '23'
-          - elixir: '1.13'
-            otp: '24'
-          - elixir: '1.13'
-            otp: '25'
+          - elixir: "1.13"
+            otp: "22"
+          - elixir: "1.13"
+            otp: "23"
+          - elixir: "1.13"
+            otp: "24"
+          - elixir: "1.13"
+            otp: "25"
 
-          - elixir: '1.12'
-            otp: '22'
-          - elixir: '1.12'
-            otp: '23'
-          - elixir: '1.12'
-            otp: '24'
+          - elixir: "1.12"
+            otp: "22"
+          - elixir: "1.12"
+            otp: "23"
+          - elixir: "1.12"
+            otp: "24"
 
-          - elixir: '1.11'
-            otp: '22'
-          - elixir: '1.11'
-            otp: '23'
-          - elixir: '1.11'
-            otp: '24'
+          - elixir: "1.11"
+            otp: "22"
+          - elixir: "1.11"
+            otp: "23"
+          - elixir: "1.11"
+            otp: "24"
 
-          - elixir: '1.10'
-            otp: '22'
-          - elixir: '1.10'
-            otp: '23'
+          - elixir: "1.10"
+            otp: "22"
+          - elixir: "1.10"
+            otp: "23"
 
     steps:
       - uses: actions/checkout@v3
@@ -75,4 +75,4 @@ jobs:
           mix dialyzer --format github
 
       - name: Run Tests
-        run: mix test
+        run: mix test --include integration
