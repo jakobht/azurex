@@ -86,6 +86,7 @@ jobs:
             )
             Azurex.Blob.Container.create(~s{test})
             Azurex.Blob.Container.create(~s{integrationtestingcontainer})
+            Azurex.Blob.put_blob("test_blob", "test_blob_content", "text", "test")
           '
       - name: Run Tests
         run: mix test --include integration
