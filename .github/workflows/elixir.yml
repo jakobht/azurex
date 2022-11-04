@@ -78,5 +78,9 @@ jobs:
       - name: Run Azurite in Background
         shell: bash
         run: azurite-blob &
+      - name: Create integration test containers in Azurex
+        run: |
+          mix run -e "Azurex.Blob.Container.create(~s{test})"
+          mix run -e "Azurex.Blob.Container.create(~s{integrationtestingcontainer})"
       - name: Run Tests
         run: mix test --include integration
