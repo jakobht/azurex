@@ -8,7 +8,15 @@ defmodule Azurex.Blob.Config do
   or `storage_account_connection_string` required.
   """
 
-  defp conf, do: Application.get_env(:azurex, __MODULE__, [])
+  defp conf do
+    case Application.get_env(:azurex, __MODULE__, []) do
+      [] ->
+        Mix.Project.get!().project()[:app]
+        |> Application.get_env(:azurex, [])
+      configuration ->
+        configuration
+    end
+  end
 
   @doc """
   Azure endpoint url, optional

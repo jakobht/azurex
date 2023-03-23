@@ -29,6 +29,10 @@ end
 
 The configuration should _either_ define `storage_account_name` and `storage_account_key` _or_ `storage_account_connection_string`.
 
+There are two ways to define the configuration:
+
+### Module Configuration
+
 ```elixir
 config :azurex, Azurex.Blob.Config,
   api_url: "https://sample.blob.core.windows.net", # Optional
@@ -36,6 +40,13 @@ config :azurex, Azurex.Blob.Config,
   storage_account_name: "name",
   storage_account_key: "access key",
   storage_account_connection_string: "Storage=Account;Connection=String" # Required if storage account `name` and `key` not set
+```
+
+### Application Specific Configuration (Umbrella Project)
+
+```elixir
+config :my_app, :azurex,
+  ....
 ```
 
 ## Documentation
