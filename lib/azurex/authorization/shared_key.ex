@@ -81,6 +81,10 @@ defmodule Azurex.Authorization.SharedKey do
 
   defp get_method(request), do: request.method |> Atom.to_string() |> String.upcase()
 
+  defp get_size(%HTTPoison.Request{body: {:stream, _}}) do
+    0
+  end
+
   defp get_size(request) do
     size = request.body |> byte_size()
     if size != 0, do: size, else: ""
@@ -124,7 +128,7 @@ defmodule Azurex.Authorization.SharedKey do
       :crypto.mac(:hmac, :sha256, storage_account_key, signature)
       |> Base.encode64()
 
-    authorization = {"authorization", "SharedKey #{storage_account_name}:#{signature}"}
+    authorization = {"Authorization", "SharedKey #{storage_account_name}:#{signature}"}
 
     headers = [authorization | request.headers]
     struct(request, headers: headers)

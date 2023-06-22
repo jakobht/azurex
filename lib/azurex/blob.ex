@@ -44,7 +44,13 @@ defmodule Azurex.Blob do
       {:error, %HTTPoison.Response{}}
 
   """
-  @spec put_blob(String.t(), binary, String.t(), optional_string, keyword) ::
+  @spec put_blob(
+          String.t(),
+          binary() | {:stream, Enumerable.t()},
+          String.t(),
+          optional_string,
+          keyword
+        ) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def put_blob(name, blob, content_type, container \\ nil, params \\ []) do
