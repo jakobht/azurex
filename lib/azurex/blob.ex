@@ -53,6 +53,21 @@ defmodule Azurex.Blob do
         ) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
+  def put_blob(name, {:stream, bitstream}, content_type, container \\ nil, params \\ []) do
+    Stream.transform(
+      bitstream,
+      fn -> [] end,
+      fn chunk, acc ->
+        with {:ok, block_id} <- put_block(container, chunk, name, params) do
+          {[], [block_id | acc]}
+        end
+      end,
+      fn acc ->
+        commit_block_list(acc)
+      end
+    )
+  end
+
   def put_blob(name, blob, content_type, container \\ nil, params \\ []) do
     %HTTPoison.Request{
       method: :put,
@@ -74,6 +89,68 @@ defmodule Azurex.Blob do
     |> HTTPoison.request()
     |> case do
       {:ok, %{status_code: 201}} -> :ok
+      {:ok, err} -> {:error, err}
+      {:error, err} -> {:error, err}
+    end
+  end
+
+  defp put_block(container, chunk, name, params) do
+    block_id = build_block_id() <> build_block_id()
+    params = [{:comp, "block"}, {:block_id, block_id} | params]
+
+    %HTTPoison.Request{
+      method: :put,
+      url: get_url(container, name),
+      params: params,
+      body: chunk,
+      headers: [
+        {"x-ms-blob-type", "BlockBlob"}
+      ],
+    }
+    |> SharedKey.sign(
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key()
+    )
+    |> HTTPoison.request()
+    |> case do
+      {:ok, %{status_code: 201}} -> {:ok, block_id}
+      {:ok, err} -> {:error, err}
+      {:error, err} -> {:error, err}
+    end
+  end
+
+  defp build_block_id do
+    4294967296
+    |> :rand.uniform()
+    |> Integer.to_string(32)
+  end
+
+  def commit_block_list(block_list) do
+    params = [{:comp, "blocklist"} | params]
+
+    blocks =
+      block_list
+      |> Enum.map(fn block_id -> "<Uncommitted>#{block_id}</Uncommitted>" end)
+      |> Enum.join()
+
+    body = "<Blocklist>#{blocks}</Blocklist>"
+
+    %HTTPoison.Request{
+      method: :put,
+      url: get_url(container, name),
+      params: params,
+      body: body,
+      headers: [
+        {"x-ms-blob-type", "BlockBlob"}
+      ],
+    }
+    |> SharedKey.sign(
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key()
+    )
+    |> HTTPoison.request()
+    |> case do
+      {:ok, %{status_code: 201}} -> {:ok, block_id}
       {:ok, err} -> {:error, err}
       {:error, err} -> {:error, err}
     end

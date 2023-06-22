@@ -81,10 +81,6 @@ defmodule Azurex.Authorization.SharedKey do
 
   defp get_method(request), do: request.method |> Atom.to_string() |> String.upcase()
 
-  defp get_size(%HTTPoison.Request{body: {:stream, _}}) do
-    0
-  end
-
   defp get_size(request) do
     size = request.body |> byte_size()
     if size != 0, do: size, else: ""

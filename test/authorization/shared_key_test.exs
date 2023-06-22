@@ -84,43 +84,5 @@ defmodule Azurex.Authorization.SharedKeyTest do
                url: "https://example.com/sample-path"
              }
     end
-
-    test "success with params for stream request body" do
-      stream = Stream.cycle("sample body")
-
-      request = %HTTPoison.Request{
-        method: :put,
-        url: "https://example.com/sample-path",
-        body: {:stream, stream},
-        headers: [
-          {"x-ms-blob-type", "BlockBlob"}
-        ],
-        params: [timeout: 1],
-        options: [recv_timeout: :infinity]
-      }
-
-      assert SharedKey.sign(
-               request,
-               storage_account_name: "dummystorageaccount",
-               storage_account_key:
-                 "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
-               content_type: "text/plain",
-               date: ~U[2021-01-01 00:00:00.000000Z]
-             ) == %HTTPoison.Request{
-               body: {:stream, stream},
-               headers: [
-                 {"authorization",
-                  "SharedKey dummystorageaccount:j9iXJN9L6fiBfl1v0Pa94gX8vFvp6S4ln9qxWoKAgAs="},
-                 {"x-ms-version", "2019-12-12"},
-                 {"x-ms-date", "Fri, 01 Jan 2021 00:00:00 GMT"},
-                 {"content-type", "text/plain"},
-                 {"x-ms-blob-type", "BlockBlob"}
-               ],
-               method: :put,
-               options: [recv_timeout: :infinity],
-               params: [timeout: 1],
-               url: "https://example.com/sample-path"
-             }
-    end
   end
 end
