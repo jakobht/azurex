@@ -140,10 +140,7 @@ defmodule Azurex.Blob do
       method: :put,
       url: get_url(container, name),
       params: params,
-      body: body,
-      headers: [
-        {"x-ms-blob-type", "BlockBlob"}
-      ],
+      body: body
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
