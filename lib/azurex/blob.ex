@@ -55,7 +55,7 @@ defmodule Azurex.Blob do
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def put_blob(name, blob, content_type, container \\ nil, params \\ [])
 
-  def put_blob(name, {:stream, bitstream}, content_type, container, params) do
+  def put_blob(name, {:stream, bitstream}, _content_type, container, params) do
     Stream.transform(
       bitstream,
       fn -> [] end,
@@ -65,10 +65,10 @@ defmodule Azurex.Blob do
         end
       end,
       fn acc ->
-        commit_block_list(acc, params)
+        commit_block_list(acc, container, name, params)
       end
     )
-    |> Enum.each(IO.inspect/1)
+    |> Enum.each(&IO.inspect(&1))
   end
 
   def put_blob(name, blob, content_type, container, params) do
@@ -128,7 +128,7 @@ defmodule Azurex.Blob do
     |> Integer.to_string(32)
   end
 
-  defp commit_block_list(block_list, params) do
+  defp commit_block_list(block_list, container, name, params) do
     params = [{:comp, "blocklist"} | params]
 
     blocks =
@@ -153,7 +153,7 @@ defmodule Azurex.Blob do
     )
     |> HTTPoison.request()
     |> case do
-      {:ok, %{status_code: 201}} -> {:ok, block_id}
+      {:ok, %{status_code: 201}} -> :ok
       {:ok, err} -> {:error, err}
       {:error, err} -> {:error, err}
     end
