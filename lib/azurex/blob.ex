@@ -98,7 +98,7 @@ defmodule Azurex.Blob do
   end
 
   defp put_block(container, chunk, name, params) do
-    block_id = build_block_id() <> build_block_id()
+    block_id = (build_block_id() <> build_block_id()) |> Base.encode64()
     content_type = "application/octet-stream"
     params = [{:comp, "block"}, {:blockid, block_id} | params]
 
@@ -109,7 +109,7 @@ defmodule Azurex.Blob do
       body: chunk,
       headers: [
         {"content-type", content_type}
-      ],
+      ]
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -126,7 +126,7 @@ defmodule Azurex.Blob do
   end
 
   defp build_block_id do
-    4294967296
+    4_294_967_296
     |> :rand.uniform()
     |> Integer.to_string(32)
   end
