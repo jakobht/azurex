@@ -53,7 +53,9 @@ defmodule Azurex.Blob do
         ) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def put_blob(name, {:stream, bitstream}, content_type, container \\ nil, params \\ []) do
+  def put_blob(name, blob, content_type, container \\ nil, params \\ []) do
+
+  def put_blob(name, {:stream, bitstream}, content_type, container, params) do
     Stream.transform(
       bitstream,
       fn -> [] end,
@@ -69,7 +71,7 @@ defmodule Azurex.Blob do
     |> Enum.each(IO.inspect/1)
   end
 
-  def put_blob(name, blob, content_type, container \\ nil, params \\ []) do
+  def put_blob(name, blob, content_type, container, params) do
     %HTTPoison.Request{
       method: :put,
       url: get_url(container, name),
