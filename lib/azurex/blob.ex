@@ -53,7 +53,7 @@ defmodule Azurex.Blob do
         ) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def put_blob(name, blob, content_type, container \\ nil, params \\ []) do
+  def put_blob(name, blob, content_type, container \\ nil, params \\ [])
 
   def put_blob(name, {:stream, bitstream}, content_type, container, params) do
     Stream.transform(
