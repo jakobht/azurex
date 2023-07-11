@@ -100,7 +100,7 @@ defmodule Azurex.Blob do
   defp put_block(container, chunk, name, params) do
     block_id = build_block_id() <> build_block_id()
     content_type = "application/octet-stream"
-    params = [{:comp, "block"}, {:block_id, block_id} | params]
+    params = [{:comp, "block"}, {:blockid, block_id} | params]
 
     %HTTPoison.Request{
       method: :put,
