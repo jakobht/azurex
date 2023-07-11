@@ -115,6 +115,7 @@ defmodule Azurex.Blob do
       storage_account_key: Config.storage_account_key()
     )
     |> HTTPoison.request()
+    |> IO.inspect()
     |> case do
       {:ok, %{status_code: 201}} -> {:ok, block_id}
       {:ok, err} -> {:error, err}
