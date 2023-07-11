@@ -66,6 +66,7 @@ defmodule Azurex.Blob do
         commit_block_list(acc)
       end
     )
+    |> Enum.each(IO.inspect/1)
   end
 
   def put_blob(name, blob, content_type, container \\ nil, params \\ []) do
@@ -125,7 +126,7 @@ defmodule Azurex.Blob do
     |> Integer.to_string(32)
   end
 
-  def commit_block_list(block_list) do
+  defp commit_block_list(block_list) do
     params = [{:comp, "blocklist"} | params]
 
     blocks =
