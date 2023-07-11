@@ -99,16 +99,13 @@ defmodule Azurex.Blob do
 
   defp put_block(container, chunk, name, params) do
     block_id = build_block_id() <> build_block_id()
-    params = [{:comp, "block"}, {:block_id, block_id} | params]
+    params = [[comp: "block", block_id: block_id] | params]
 
     %HTTPoison.Request{
       method: :put,
       url: get_url(container, name),
       params: params,
-      body: chunk,
-      headers: [
-        {"x-ms-blob-type", "BlockBlob"}
-      ],
+      body: chunk
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
