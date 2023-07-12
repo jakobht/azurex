@@ -4,7 +4,8 @@ defmodule Azurex.Blob do
 
   In the functions below set container as nil to use the one configured in `Azurex.Blob.Config`.
   """
-  alias Azurex.Blob.Config
+
+  alias Azurex.Blob.{Block, Config}
   alias Azurex.Authorization.SharedKey
 
   @typep optional_string :: String.t() | nil
@@ -60,12 +61,12 @@ defmodule Azurex.Blob do
       bitstream,
       fn -> [] end,
       fn chunk, acc ->
-        with {:ok, block_id} <- put_block(container, chunk, name, params) do
+        with {:ok, block_id} <- Block.put_block(container, chunk, name, params) do
           {[], [block_id | acc]}
         end
       end,
       fn acc ->
-        commit_block_list(acc, container, name, params)
+        Block.commit_list(acc, container, name, params)
       end
     )
     |> Enum.each(&IO.inspect(&1))
@@ -83,85 +84,6 @@ defmodule Azurex.Blob do
       # Blob storage only answers when the whole file has been uploaded, so recv_timeout
       # is not applicable for the put request, so we set it to infinity
       options: [recv_timeout: :infinity]
-    }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
-      content_type: content_type
-    )
-    |> HTTPoison.request()
-    |> case do
-      {:ok, %{status_code: 201}} -> :ok
-      {:ok, err} -> {:error, err}
-      {:error, err} -> {:error, err}
-    end
-  end
-
-  defp put_block(container, chunk, name, params) do
-    block_id = build_block_id()
-    content_type = "application/octet-stream"
-    params = [{:comp, "block"}, {:blockid, block_id} | params]
-
-    %HTTPoison.Request{
-      method: :put,
-      url: get_url(container, name),
-      params: params,
-      body: chunk,
-      headers: [
-        {"content-type", content_type},
-        {"content-length", byte_size(chunk)}
-      ]
-    }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
-      content_type: content_type
-    )
-    |> HTTPoison.request()
-    |> case do
-      {:ok, %{status_code: 201}} -> {:ok, block_id}
-      {:ok, err} -> {:error, err}
-      {:error, err} -> {:error, err}
-    end
-  end
-
-  defp build_block_id do
-    gen_half = fn ->
-      4_294_967_296
-      |> :rand.uniform()
-      |> Integer.to_string(32)
-    end
-
-    (gen_half.() <> gen_half.())
-    |> String.pad_trailing(32, "0")
-    |> Base.encode64()
-  end
-
-  defp commit_block_list(block_list, container, name, params) do
-    params = [{:comp, "blocklist"} | params]
-    content_type = "text/plain; charset=UTF-8"
-
-    blocks =
-      block_list
-      |> Enum.reverse()
-      |> Enum.map(fn block_id -> "<Uncommitted>#{block_id}</Uncommitted>" end)
-      |> Enum.join()
-
-    body = """
-    <?xml version="1.0" encoding="utf-8"?>
-    <BlockList>
-    #{blocks}
-    </BlockList>
-    """
-
-    %HTTPoison.Request{
-      method: :put,
-      url: get_url(container, name),
-      params: params,
-      body: body,
-      headers: [
-        {"content-type", content_type}
-      ]
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
