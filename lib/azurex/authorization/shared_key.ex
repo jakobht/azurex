@@ -115,7 +115,7 @@ defmodule Azurex.Authorization.SharedKey do
     params
     |> Enum.sort()
     |> Enum.map(fn {k, v} ->
-      [to_string(k), ":", to_string(v)]
+      [to_string(k), ":", to_string(v) |> URI.encode_www_form()]
     end)
   end
 

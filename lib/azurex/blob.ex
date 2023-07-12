@@ -132,9 +132,7 @@ defmodule Azurex.Blob do
       |> Integer.to_string(32)
     end
 
-    (gen_half() <> gen_half())
-    |> Base.encode64()
-    |> URI.encode_www_form()
+    (gen_half() <> gen_half()) |> Base.encode64()
   end
 
   defp commit_block_list(block_list, container, name, params) do
