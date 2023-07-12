@@ -98,7 +98,7 @@ defmodule Azurex.Blob do
   end
 
   defp put_block(container, chunk, name, params) do
-    block_id = (build_block_id() <> build_block_id()) |> Base.encode64()
+    block_id = build_block_id()
     content_type = "application/octet-stream"
     params = [{:comp, "block"}, {:blockid, block_id} | params]
 
@@ -126,9 +126,15 @@ defmodule Azurex.Blob do
   end
 
   defp build_block_id do
-    4_294_967_296
-    |> :rand.uniform()
-    |> Integer.to_string(32)
+    gen_half = fn ->
+      4_294_967_296
+      |> :rand.uniform()
+      |> Integer.to_string(32)
+    end
+
+    (gen_half() <> gen_half())
+    |> Base.encode64()
+    |> URI.encode_www_form()
   end
 
   defp commit_block_list(block_list, container, name, params) do
@@ -137,6 +143,7 @@ defmodule Azurex.Blob do
 
     blocks =
       block_list
+      |> Enum.reverse()
       |> Enum.map(fn block_id -> "<Uncommitted>#{block_id}</Uncommitted>" end)
       |> Enum.join()
 
