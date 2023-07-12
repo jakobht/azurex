@@ -200,7 +200,7 @@ defmodule Azurex.Blob do
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def get_blob(name, container \\ nil, params \\ []) do
-    blob_request(name, container, params)
+    blob_request(name, container, :get, params)
     |> HTTPoison.request()
     |> case do
       {:ok, %{body: blob, status_code: 200}} -> {:ok, blob}
@@ -216,7 +216,7 @@ defmodule Azurex.Blob do
           {:ok, list}
           | {:error, :not_found | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def head_blob(name, container \\ nil, params \\ []) do
-    blob_request(name, container, params, [], :head)
+    blob_request(name, container, :head, params)
     |> HTTPoison.request()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 200, headers: details}} -> {:ok, details}
@@ -226,11 +226,31 @@ defmodule Azurex.Blob do
     end
   end
 
-  defp blob_request(name, container, params, options \\ [], method \\ :get) do
+  @doc """
+  Copies a blob to a destination.
+  """
+  @spec copy_blob(String.t(), String.t(), optional_string) ::
+          {:ok, HTTPoison.Response.t()} | {:error, term()}
+  def copy_blob(source_name, destination_name, container \\ nil) do
+    source_url = get_url(container, source_name)
+    headers = [{"x-ms-copy-source:name", source_url}]
+
+    blob_request(destination_name, container, :put, [], headers)
+    |> HTTPoison.request()
+    |> IO.inspect()
+    |> case do
+      {:ok, %HTTPoison.Response{status_code: 202} = resp} -> {:ok, resp}
+      {:ok, %HTTPoison.Response{} = resp} -> {:error, resp}
+      err -> err
+    end
+  end
+
+  defp blob_request(name, container, method, params, headers \\ [], options \\ []) do
     %HTTPoison.Request{
       method: method,
       url: get_url(container, name),
       params: params,
+      headers: headers,
       options: options
     }
     |> SharedKey.sign(
