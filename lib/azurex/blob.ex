@@ -141,7 +141,6 @@ defmodule Azurex.Blob do
 
     blocks =
       block_list
-      |> Enum.reverse()
       |> Enum.map(fn block_id -> "<Uncommitted>#{block_id}</Uncommitted>" end)
       |> Enum.join()
 
