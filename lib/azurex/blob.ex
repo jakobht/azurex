@@ -118,7 +118,6 @@ defmodule Azurex.Blob do
       content_type: content_type
     )
     |> HTTPoison.request()
-    |> IO.inspect()
     |> case do
       {:ok, %{status_code: 201}} -> {:ok, block_id}
       {:ok, err} -> {:error, err}
@@ -170,7 +169,6 @@ defmodule Azurex.Blob do
       content_type: content_type
     )
     |> HTTPoison.request()
-    |> IO.inspect()
     |> case do
       {:ok, %{status_code: 201}} -> :ok
       {:ok, err} -> {:error, err}
@@ -232,10 +230,20 @@ defmodule Azurex.Blob do
   @spec copy_blob(String.t(), String.t(), optional_string) ::
           {:ok, HTTPoison.Response.t()} | {:error, term()}
   def copy_blob(source_name, destination_name, container \\ nil) do
+    content_type = "application/octet-stream"
     source_url = get_url(container, source_name)
-    headers = [{"x-ms-copy-source", source_url}]
+    headers = [{"x-ms-copy-source", source_url}, {"content-type", content_type}]
 
-    blob_request(destination_name, container, :put, [], headers)
+    %HTTPoison.Request{
+      method: :put,
+      url: get_url(container, destination_name),
+      headers: headers
+    }
+    |> SharedKey.sign(
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key(),
+      content_type: content_type
+    )
     |> HTTPoison.request()
     |> IO.inspect()
     |> case do

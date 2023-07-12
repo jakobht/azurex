@@ -82,7 +82,7 @@ defmodule Azurex.Authorization.SharedKey do
   defp get_method(request), do: request.method |> Atom.to_string() |> String.upcase()
 
   defp get_size(request) do
-    size = request.body |> byte_size() |> IO.inspect()
+    size = request.body |> byte_size()
     if size != 0, do: size, else: ""
   end
 
