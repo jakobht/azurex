@@ -133,6 +133,7 @@ defmodule Azurex.Blob do
 
   defp commit_block_list(block_list, container, name, params) do
     params = [{:comp, "blocklist"} | params]
+    content_type = "application/xml"
 
     blocks =
       block_list
@@ -145,11 +146,15 @@ defmodule Azurex.Blob do
       method: :put,
       url: get_url(container, name),
       params: params,
-      body: body
+      body: body,
+      headers: [
+        {"content-type", content_type}
+      ]
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key()
+      storage_account_key: Config.storage_account_key(),
+      content_type: content_type
     )
     |> HTTPoison.request()
     |> IO.inspect()
