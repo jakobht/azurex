@@ -65,7 +65,7 @@ defmodule Azurex.Authorization.SharedKey do
         else: request.headers
 
     headers = [
-      {"x-ms-version", "2019-12-12"},
+      {"x-ms-version", "2023-01-03"},
       {"x-ms-date", format_date(date)}
       | headers
     ]
