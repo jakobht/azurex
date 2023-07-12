@@ -109,7 +109,7 @@ defmodule Azurex.Blob do
       body: chunk,
       headers: [
         {"content-type", content_type},
-        {"content-length", byte_size(chunk) }
+        {"content-length", byte_size(chunk)}
       ]
     }
     |> SharedKey.sign(
@@ -133,7 +133,7 @@ defmodule Azurex.Blob do
       |> Integer.to_string(32)
     end
 
-    (gen_half() <> gen_half()) |> Base.encode64()
+    (gen_half.() <> gen_half.()) |> Base.encode64()
   end
 
   defp commit_block_list(block_list, container, name, params) do
