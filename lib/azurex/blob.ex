@@ -108,7 +108,8 @@ defmodule Azurex.Blob do
       params: params,
       body: chunk,
       headers: [
-        {"content-type", content_type}
+        {"content-type", content_type},
+        {"content-length", byte_size(chunk) }
       ]
     }
     |> SharedKey.sign(
