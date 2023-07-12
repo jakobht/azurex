@@ -142,9 +142,9 @@ defmodule Azurex.Blob do
 
     body = """
     <?xml version="1.0" encoding="utf-8"?>
-    <Blocklist>
+    <BlockList>
     #{blocks}
-    </Blocklist>
+    </BlockList>
     """
 
     %HTTPoison.Request{
