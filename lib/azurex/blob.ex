@@ -131,10 +131,11 @@ defmodule Azurex.Blob do
       4_294_967_296
       |> :rand.uniform()
       |> Integer.to_string(32)
-      |> String.pad_leading(32, "0")
     end
 
-    (gen_half.() <> gen_half.()) |> Base.encode64()
+    (gen_half.() <> gen_half.())
+    |> String.pad_trailing(32, "0")
+    |> Base.encode64()
   end
 
   defp commit_block_list(block_list, container, name, params) do
@@ -143,6 +144,7 @@ defmodule Azurex.Blob do
 
     blocks =
       block_list
+      |> Enum.reverse()
       |> Enum.map(fn block_id -> "<Uncommitted>#{block_id}</Uncommitted>" end)
       |> Enum.join()
 
