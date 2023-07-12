@@ -233,9 +233,23 @@ defmodule Azurex.Blob do
           {:ok, HTTPoison.Response.t()} | {:error, term()}
   def copy_blob(source_name, destination_name, container \\ nil) do
     source_url = get_url(container, source_name)
-    headers = [{"x-ms-copy-source:name", source_url}]
+    content_type = "application/octet-stream"
 
-    blob_request(destination_name, container, :put, [], headers)
+    headers = [
+      {"x-ms-copy-source:name", source_url},
+      {"content-type", content_type}
+    ]
+
+    %HTTPoison.Request{
+      method: :put,
+      url: get_url(container, destination_name),
+      headers: headers
+    }
+    |> SharedKey.sign(
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key(),
+      content_type: content_type
+    )
     |> HTTPoison.request()
     |> IO.inspect()
     |> case do
