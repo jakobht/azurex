@@ -133,7 +133,7 @@ defmodule Azurex.Blob do
 
   defp commit_block_list(block_list, container, name, params) do
     params = [{:comp, "blocklist"} | params]
-    content_type = "application/xml"
+    content_type = "text/plain; charset=UTF-8"
 
     blocks =
       block_list
