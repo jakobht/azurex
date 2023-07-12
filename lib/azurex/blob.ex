@@ -140,7 +140,12 @@ defmodule Azurex.Blob do
       |> Enum.map(fn block_id -> "<Uncommitted>#{block_id}</Uncommitted>" end)
       |> Enum.join()
 
-    body = "<Blocklist>#{blocks}</Blocklist>"
+    body = """
+    <?xml version="1.0" encoding="utf-8"?>
+    <Blocklist>
+    #{blocks}
+    </Blocklist>
+    """
 
     %HTTPoison.Request{
       method: :put,
