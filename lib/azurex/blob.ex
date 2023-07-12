@@ -131,6 +131,7 @@ defmodule Azurex.Blob do
       4_294_967_296
       |> :rand.uniform()
       |> Integer.to_string(32)
+      |> String.pad_leading(32, "0")
     end
 
     (gen_half.() <> gen_half.()) |> Base.encode64()
