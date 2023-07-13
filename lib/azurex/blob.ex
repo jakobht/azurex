@@ -48,7 +48,7 @@ defmodule Azurex.Blob do
   @spec put_blob(
           String.t(),
           binary() | {:stream, Enumerable.t()},
-          String.t(),
+          optional_string,
           optional_string,
           keyword
         ) ::
@@ -57,8 +57,8 @@ defmodule Azurex.Blob do
   def put_blob(name, blob, content_type, container \\ nil, params \\ [])
 
   def put_blob(name, {:stream, bitstream}, _content_type, container, params) do
-    Stream.transform(
-      bitstream,
+    bitstream
+    |> Stream.transform(
       fn -> [] end,
       fn chunk, acc ->
         with {:ok, block_id} <- Block.put_block(container, chunk, name, params) do
@@ -69,7 +69,7 @@ defmodule Azurex.Blob do
         Block.commit_list(acc, container, name, params)
       end
     )
-    |> Enum.each(&IO.inspect(&1))
+    |> Stream.run()
   end
 
   def put_blob(name, blob, content_type, container, params) do
