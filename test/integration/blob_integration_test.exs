@@ -6,13 +6,28 @@ defmodule Azurex.BlobIntegrationTests do
 
   @sample_file_contents "sample file\ncontents\n"
   @integration_testing_container "integrationtestingcontainer"
+  @default_container "test"
 
-  setup do
+  setup_all do
     Application.put_env(:azurex, Azurex.Blob.Config,
-      default_container: "test",
+      default_container: @default_container,
       storage_account_connection_string:
         "AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1"
     )
+
+    [@default_container, @integration_testing_container]
+    |> Enum.map(&create_test_container(&1))
+    |> Enum.each(&IO.inspect(&1))
+  end
+
+  defp create_test_container(container) do
+    container
+    |> Azurex.Blob.Container.create()
+    |> case do
+      {:ok, _} -> :ok
+      {:error, :already_exists} -> :ok
+      {:error, err} -> raise err
+    end
   end
 
   describe "upload and download a blob" do
@@ -25,6 +40,15 @@ defmodule Azurex.BlobIntegrationTests do
                "text/plain"
              ) == :ok
 
+      assert Blob.get_blob(blob_name) == {:ok, @sample_file_contents}
+    end
+
+    test "streaming blob body" do
+      blob_name = make_blob_name()
+      {:ok, pid} = StringIO.open(@sample_file_contents)
+      body = IO.binstream(pid, 8)
+
+      assert Blob.put_blob(blob_name, {:stream, body}, nil) == :ok
       assert Blob.get_blob(blob_name) == {:ok, @sample_file_contents}
     end
 
