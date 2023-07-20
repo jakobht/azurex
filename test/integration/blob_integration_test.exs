@@ -6,28 +6,10 @@ defmodule Azurex.BlobIntegrationTests do
 
   @sample_file_contents "sample file\ncontents\n"
   @integration_testing_container "integrationtestingcontainer"
-  @default_container "test"
 
-  setup_all do
-    Application.put_env(:azurex, Azurex.Blob.Config,
-      default_container: @default_container,
-      storage_account_connection_string:
-        "AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1"
-    )
-
-    [@default_container, @integration_testing_container]
-    |> Enum.map(&create_test_container(&1))
-    |> Enum.each(&IO.inspect(&1))
-  end
-
-  defp create_test_container(container) do
-    container
-    |> Azurex.Blob.Container.create()
-    |> case do
-      {:ok, _} -> :ok
-      {:error, :already_exists} -> :ok
-      {:error, err} -> raise err
-    end
+  setup do
+    # set integration test env in case another test has overwritten it
+    AzuriteSetup.set_env()
   end
 
   describe "upload and download a blob" do
