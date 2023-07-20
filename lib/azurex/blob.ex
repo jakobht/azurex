@@ -30,9 +30,19 @@ defmodule Azurex.Blob do
   @doc """
   Upload a blob.
 
+  ## The `blob` Argument
+
+  The blob argument may be either a `binary` or a tuple of
+  `{:stream, Stream.t()}`. When a stream is provided, a `content_type` argument
+  of `nil` will result in the blob having the inferred content type
+  `"application/octet-stream"`.
+
   ## Examples
 
       iex> put_blob("filename.txt", "file contents", "text/plain")
+      :ok
+
+      iex> put_blob("filename.txt", {:stream, bitstream}, nil)
       :ok
 
       iex> put_blob("filename.txt", "file contents", "text/plain", "container")
@@ -66,7 +76,7 @@ defmodule Azurex.Blob do
         end
       end,
       fn acc ->
-        Block.commit_list(acc, container, name, params)
+        Block.put_block_list(acc, container, name, params)
       end
     )
     |> Stream.run()
@@ -167,7 +177,6 @@ defmodule Azurex.Blob do
       content_type: content_type
     )
     |> HTTPoison.request()
-    |> IO.inspect()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 202} = resp} -> {:ok, resp}
       {:ok, %HTTPoison.Response{} = resp} -> {:error, resp}

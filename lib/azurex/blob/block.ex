@@ -1,6 +1,11 @@
 defmodule Azurex.Blob.Block do
   @moduledoc """
-  Implementation of Azure Blob Storage
+  Implementation of Azure Blob Storage.
+
+  You can:
+
+  - [upload a block as part of a blob](https://learn.microsoft.com/en-us/rest/api/storageservices/put-block)
+  - [commit a list of blocks as part of a blob](https://learn.microsoft.com/en-us/rest/api/storageservices/put-block-list)
   """
 
   alias Azurex.Authorization.SharedKey
@@ -9,6 +14,8 @@ defmodule Azurex.Blob.Block do
 
   @doc """
   Creates a block to be committed to a blob.
+
+  On success, returns an :ok tuple with the base64 encoded block_id.
   """
   @spec put_block(String.t(), bitstring(), String.t(), list()) ::
           {:ok, String.t()} | {:error, term()}
@@ -42,9 +49,11 @@ defmodule Azurex.Blob.Block do
 
   @doc """
   Commits the given list of block_ids to a blob.
+
+  Block IDs should be base64 encoded, as returned by put_block/2.
   """
-  @spec commit_list(list(), String.t(), String.t(), list()) :: :ok | {:error, term()}
-  def commit_list(block_ids, container, name, params) do
+  @spec put_block_list(list(), String.t(), String.t(), list()) :: :ok | {:error, term()}
+  def put_block_list(block_ids, container, name, params) do
     params = [{:comp, "blocklist"} | params]
     content_type = "text/plain; charset=UTF-8"
 
