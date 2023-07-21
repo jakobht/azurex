@@ -52,10 +52,12 @@ defmodule Azurex.Blob.Block do
 
   Block IDs should be base64 encoded, as returned by put_block/2.
   """
-  @spec put_block_list(list(), String.t(), String.t(), list()) :: :ok | {:error, term()}
-  def put_block_list(block_ids, container, name, params) do
+  @spec put_block_list(list(), String.t(), String.t(), String.t() | nil, list()) ::
+          :ok | {:error, term()}
+  def put_block_list(block_ids, container, name, blob_content_type, params) do
     params = [{:comp, "blocklist"} | params]
     content_type = "text/plain; charset=UTF-8"
+    blob_content_type = blob_content_type || "application/octet-stream"
 
     blocks =
       block_ids
@@ -76,7 +78,8 @@ defmodule Azurex.Blob.Block do
       params: params,
       body: body,
       headers: [
-        {"content-type", content_type}
+        {"content-type", content_type},
+        {"x-ms-blob-content-type", blob_content_type}
       ]
     }
     |> SharedKey.sign(

@@ -25,12 +25,28 @@ defmodule Azurex.BlobIntegrationTests do
       assert Blob.get_blob(blob_name) == {:ok, @sample_file_contents}
     end
 
-    test "streaming blob body" do
+    test "uploading binary blob with nil content-type" do
+      blob_name = make_blob_name()
+
+      assert Blob.put_blob(blob_name, @sample_file_contents, nil) == :ok
+      assert Blob.get_blob(blob_name) == {:ok, @sample_file_contents}
+    end
+
+    test "streaming blob body with nil content-type" do
       blob_name = make_blob_name()
       {:ok, pid} = StringIO.open(@sample_file_contents)
       body = IO.binstream(pid, 8)
 
       assert Blob.put_blob(blob_name, {:stream, body}, nil) == :ok
+      assert Blob.get_blob(blob_name) == {:ok, @sample_file_contents}
+    end
+
+    test "streaming blob body with specific content-type" do
+      blob_name = make_blob_name()
+      {:ok, pid} = StringIO.open(@sample_file_contents)
+      body = IO.binstream(pid, 8)
+
+      assert Blob.put_blob(blob_name, {:stream, body}, "application/json") == :ok
       assert Blob.get_blob(blob_name) == {:ok, @sample_file_contents}
     end
 

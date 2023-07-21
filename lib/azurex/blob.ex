@@ -33,9 +33,13 @@ defmodule Azurex.Blob do
   ## The `blob` Argument
 
   The blob argument may be either a `binary` or a tuple of
-  `{:stream, Stream.t()}`. When a stream is provided, a `content_type` argument
-  of `nil` will result in the blob having the inferred content type
-  `"application/octet-stream"`.
+  `{:stream, Stream.t()}`.
+
+  ## The `content_type` Argument
+
+  This argument can be either a valid string, or `nil`. A `content_type`
+  argument of `nil` will result in the blob being assigned the default content
+  type `"application/octet-stream"`.
 
   ## Examples
 
@@ -66,7 +70,9 @@ defmodule Azurex.Blob do
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def put_blob(name, blob, content_type, container \\ nil, params \\ [])
 
-  def put_blob(name, {:stream, bitstream}, _content_type, container, params) do
+  def put_blob(name, {:stream, bitstream}, content_type, container, params) do
+    content_type = content_type || "application/octet-stream"
+
     bitstream
     |> Stream.transform(
       fn -> [] end,
@@ -76,13 +82,15 @@ defmodule Azurex.Blob do
         end
       end,
       fn acc ->
-        Block.put_block_list(acc, container, name, params)
+        Block.put_block_list(acc, container, name, content_type, params)
       end
     )
     |> Stream.run()
   end
 
   def put_blob(name, blob, content_type, container, params) do
+    content_type = content_type || "application/octet-stream"
+
     %HTTPoison.Request{
       method: :put,
       url: get_url(container, name),
