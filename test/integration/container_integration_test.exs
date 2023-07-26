@@ -27,7 +27,8 @@ defmodule Azurex.ContainerIntegrationTests do
 
   describe "create container" do
     test "creates a new container" do
-      container_name = for _ <- 1..32, into: "", do: <<Enum.random('abcdefghijklmnopqrstuvwxyz')>>
+      container_name =
+        for _ <- 1..32, into: "", do: <<Enum.random(~c"abcdefghijklmnopqrstuvwxyz")>>
 
       assert {:error, :not_found} = Container.head_container(container_name)
       assert {:ok, ^container_name} = Container.create(container_name)
