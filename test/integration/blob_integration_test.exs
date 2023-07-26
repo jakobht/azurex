@@ -124,6 +124,28 @@ defmodule Azurex.BlobIntegrationTests do
     end
   end
 
+  describe "copying a blob" do
+    setup do
+      blob_name = make_blob_name()
+
+      with :ok <- Blob.put_blob(blob_name, @sample_file_contents, "text/plain") do
+        {:ok, %{source_blob: blob_name}}
+      end
+    end
+
+    test "copies an existing blob to a new location", %{source_blob: source_blob} do
+      destination_blob = "dest_blob"
+
+      assert {:ok, _} = Blob.copy_blob(source_blob, destination_blob)
+      assert {:ok, @sample_file_contents} = Blob.get_blob(destination_blob)
+    end
+
+    test "returns error when source blob does not exist", _context do
+      destination_blob = "dest_blob"
+      assert {:error, _} = Blob.copy_blob("does_not_exist", destination_blob)
+    end
+  end
+
   describe "list blobs" do
     test "simple, not checking result" do
       assert {:ok, _result_not_checked} = Blob.list_blobs()
