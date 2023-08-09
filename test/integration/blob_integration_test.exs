@@ -167,6 +167,22 @@ defmodule Azurex.BlobIntegrationTests do
     end
   end
 
+  describe "delete blob" do
+    test "delete_blob/3 deletes the blob from the container" do
+      blob_name = make_blob_name()
+
+      assert Blob.put_blob(
+               blob_name,
+               @sample_file_contents,
+               "text/plain"
+             ) == :ok
+
+      assert :ok = Blob.delete_blob(blob_name)
+
+      assert {:error, :not_found} = Blob.head_blob(blob_name)
+    end
+  end
+
   defp make_blob_name do
     escaped_time =
       DateTime.utc_now()

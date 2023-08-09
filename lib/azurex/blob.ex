@@ -192,6 +192,19 @@ defmodule Azurex.Blob do
     end
   end
 
+  @spec delete_blob(String.t(), optional_string()) ::
+          :ok | {:error, :not_found | HTTPoison.Error.t() | HTTPoison.Response.t()}
+  def delete_blob(name, container \\ nil, params \\ []) do
+    blob_request(name, container, :delete, params)
+    |> HTTPoison.request()
+    |> case do
+      {:ok, %HTTPoison.Response{status_code: 202}} -> :ok
+      {:ok, %HTTPoison.Response{status_code: 404}} -> {:error, :not_found}
+      {:ok, err} -> {:error, err}
+      {:error, err} -> {:error, err}
+    end
+  end
+
   defp blob_request(name, container, method, params, headers \\ [], options \\ []) do
     %HTTPoison.Request{
       method: method,
