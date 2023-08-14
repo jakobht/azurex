@@ -100,10 +100,10 @@ defmodule Azurex.Blob.Block do
       4_294_967_296
       |> :rand.uniform()
       |> Integer.to_string(32)
+      |> String.pad_trailing(8, "0")
     end
 
     (gen_half.() <> gen_half.())
-    |> String.pad_trailing(32, "0")
     |> Base.encode64()
   end
 end
