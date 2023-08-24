@@ -65,7 +65,7 @@ defmodule Azurex.Authorization.SharedKey do
         else: request.headers
 
     headers = [
-      {"x-ms-version", "2019-12-12"},
+      {"x-ms-version", "2023-01-03"},
       {"x-ms-date", format_date(date)}
       | headers
     ]
@@ -124,7 +124,7 @@ defmodule Azurex.Authorization.SharedKey do
       :crypto.mac(:hmac, :sha256, storage_account_key, signature)
       |> Base.encode64()
 
-    authorization = {"authorization", "SharedKey #{storage_account_name}:#{signature}"}
+    authorization = {"Authorization", "SharedKey #{storage_account_name}:#{signature}"}
 
     headers = [authorization | request.headers]
     struct(request, headers: headers)

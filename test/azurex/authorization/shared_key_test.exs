@@ -36,9 +36,9 @@ defmodule Azurex.Authorization.SharedKeyTest do
              ) == %HTTPoison.Request{
                body: "sample body",
                headers: [
-                 {"authorization",
-                  "SharedKey dummystorageaccount:D9brdlYGXAlZ8+2DtdcrHxQTILPKGjFigA3gMySE8r0="},
-                 {"x-ms-version", "2019-12-12"},
+                 {"Authorization",
+                  "SharedKey dummystorageaccount:rp6KytL/Db5VaY0hnwHWtFb1icf4ENlUewfkwiuB3hc="},
+                 {"x-ms-version", "2023-01-03"},
                  {"x-ms-date", "Fri, 01 Jan 2021 00:00:00 GMT"},
                  {"content-type", "text/plain"},
                  {"x-ms-blob-type", "BlockBlob"}
@@ -71,9 +71,9 @@ defmodule Azurex.Authorization.SharedKeyTest do
              ) == %HTTPoison.Request{
                body: "sample body",
                headers: [
-                 {"authorization",
-                  "SharedKey dummystorageaccount:hyFKuyt2Go2cKgrBxcEsZTjjIIgP+L3qWlvGP3Wok+o="},
-                 {"x-ms-version", "2019-12-12"},
+                 {"Authorization",
+                  "SharedKey dummystorageaccount:lxajxKTm/KB8ntzj+ZHoPc5zPxDm8STBOwQwMHJg6SA="},
+                 {"x-ms-version", "2023-01-03"},
                  {"x-ms-date", "Fri, 01 Jan 2021 00:00:00 GMT"},
                  {"content-type", "text/plain"},
                  {"x-ms-blob-type", "BlockBlob"}

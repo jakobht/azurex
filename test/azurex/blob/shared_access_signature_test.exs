@@ -25,7 +25,10 @@ defmodule Azurex.Blob.SharedAccessSignatureTest do
 
   test "permissions order does not matter" do
     assert sas_url(container(), blob(), from: now(), permissions: [:read, :add, :write, :delete]) ==
-             sas_url(container(), blob(), from: now(), permissions: [:delete, :write, :add, :read])
+             sas_url(container(), blob(),
+               from: now(),
+               permissions: [:delete, :write, :add, :read]
+             )
   end
 
   defp container, do: "my_container"

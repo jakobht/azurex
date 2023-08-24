@@ -4,7 +4,8 @@ defmodule Azurex.Blob do
 
   In the functions below set container as nil to use the one configured in `Azurex.Blob.Config`.
   """
-  alias Azurex.Blob.Config
+
+  alias Azurex.Blob.{Block, Config}
   alias Azurex.Authorization.SharedKey
 
   @typep optional_string :: String.t() | nil
@@ -29,9 +30,26 @@ defmodule Azurex.Blob do
   @doc """
   Upload a blob.
 
+  ## The `blob` Argument
+
+  The blob argument may be either a `binary` or a tuple of
+  `{:stream, Stream.t()}`.
+
+  ## The `content_type` Argument
+
+  This argument can be either a valid string, or `nil`. A `content_type`
+  argument of `nil` will result in the blob being assigned the default content
+  type `"application/octet-stream"`.
+
   ## Examples
 
       iex> put_blob("filename.txt", "file contents", "text/plain")
+      :ok
+
+      iex> {:ok, io_device} = StringIO.open("file contents as a stream")
+      byte_length = 8_000_000
+      bitstream = IO.binstream(io_device, byte_length)
+      put_blob("filename.txt", {:stream, bitstream}, nil)
       :ok
 
       iex> put_blob("filename.txt", "file contents", "text/plain", "container")
@@ -44,10 +62,38 @@ defmodule Azurex.Blob do
       {:error, %HTTPoison.Response{}}
 
   """
-  @spec put_blob(String.t(), binary, String.t(), optional_string, keyword) ::
+  @spec put_blob(
+          String.t(),
+          binary() | {:stream, Enumerable.t()},
+          optional_string,
+          optional_string,
+          keyword
+        ) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def put_blob(name, blob, content_type, container \\ nil, params \\ []) do
+  def put_blob(name, blob, content_type, container \\ nil, params \\ [])
+
+  def put_blob(name, {:stream, bitstream}, content_type, container, params) do
+    content_type = content_type || "application/octet-stream"
+
+    bitstream
+    |> Stream.transform(
+      fn -> [] end,
+      fn chunk, acc ->
+        with {:ok, block_id} <- Block.put_block(container, chunk, name, params) do
+          {[], [block_id | acc]}
+        end
+      end,
+      fn acc ->
+        Block.put_block_list(acc, container, name, content_type, params)
+      end
+    )
+    |> Stream.run()
+  end
+
+  def put_blob(name, blob, content_type, container, params) do
+    content_type = content_type || "application/octet-stream"
+
     %HTTPoison.Request{
       method: :put,
       url: get_url(container, name),
@@ -95,7 +141,7 @@ defmodule Azurex.Blob do
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def get_blob(name, container \\ nil, params \\ []) do
-    blob_request(name, container, params)
+    blob_request(name, container, :get, params)
     |> HTTPoison.request()
     |> case do
       {:ok, %{body: blob, status_code: 200}} -> {:ok, blob}
@@ -111,7 +157,7 @@ defmodule Azurex.Blob do
           {:ok, list}
           | {:error, :not_found | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def head_blob(name, container \\ nil, params \\ []) do
-    blob_request(name, container, params, [], :head)
+    blob_request(name, container, :head, params)
     |> HTTPoison.request()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 200, headers: details}} -> {:ok, details}
@@ -121,10 +167,38 @@ defmodule Azurex.Blob do
     end
   end
 
+  @doc """
+  Copies a blob to a destination.
+  """
+  @spec copy_blob(String.t(), String.t(), optional_string) ::
+          {:ok, HTTPoison.Response.t()} | {:error, term()}
+  def copy_blob(source_name, destination_name, container \\ nil) do
+    content_type = "application/octet-stream"
+    source_url = get_url(container, source_name)
+    headers = [{"x-ms-copy-source", source_url}, {"content-type", content_type}]
+
+    %HTTPoison.Request{
+      method: :put,
+      url: get_url(container, destination_name),
+      headers: headers
+    }
+    |> SharedKey.sign(
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key(),
+      content_type: content_type
+    )
+    |> HTTPoison.request()
+    |> case do
+      {:ok, %HTTPoison.Response{status_code: 202} = resp} -> {:ok, resp}
+      {:ok, %HTTPoison.Response{} = resp} -> {:error, resp}
+      err -> err
+    end
+  end
+
   @spec delete_blob(String.t(), optional_string()) ::
           :ok | {:error, :not_found | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def delete_blob(name, container \\ nil, params \\ []) do
-    blob_request(name, container, params, [], :delete)
+    blob_request(name, container, :delete, params)
     |> HTTPoison.request()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 202}} -> :ok
@@ -134,11 +208,12 @@ defmodule Azurex.Blob do
     end
   end
 
-  defp blob_request(name, container, params, options \\ [], method \\ :get) do
+  defp blob_request(name, container, method, params, headers \\ [], options \\ []) do
     %HTTPoison.Request{
       method: method,
       url: get_url(container, name),
       params: params,
+      headers: headers,
       options: options
     }
     |> SharedKey.sign(

@@ -6,10 +6,8 @@ defmodule Azurex.ContainerIntegrationTests do
   @integration_testing_container "integrationtestingcontainer"
 
   setup do
-    Application.put_env(:azurex, Azurex.Blob.Config,
-      storage_account_connection_string:
-        "AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1"
-    )
+    # set integration test env in case another test has overwritten it
+    AzuriteSetup.set_env()
   end
 
   describe "head container" do
@@ -29,7 +27,8 @@ defmodule Azurex.ContainerIntegrationTests do
 
   describe "create container" do
     test "creates a new container" do
-      container_name = for _ <- 1..32, into: "", do: <<Enum.random('abcdefghijklmnopqrstuvwxyz')>>
+      container_name =
+        for _ <- 1..32, into: "", do: <<Enum.random(~c"abcdefghijklmnopqrstuvwxyz")>>
 
       assert {:error, :not_found} = Container.head_container(container_name)
       assert {:ok, ^container_name} = Container.create(container_name)
