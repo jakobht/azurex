@@ -20,7 +20,7 @@ by adding `azurex` to your list of dependencies in `mix.exs` e.g.:
 ```elixir
 def deps do
   [
-    {:azurex, "~> 1.0.0"}
+    {:azurex, "~> 1.1.0"}
   ]
 end
 ```

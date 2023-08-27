@@ -11,6 +11,20 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ---
 
+## 1.1.0
+
+- New features and update dependencies to support elixir 1.15
+
+### Added/Changed
+
+- Added support for streaming blobs
+- Added support for copying blobs
+- Added support for deleting blobs
+- Removed Timex dependency
+- Updated dependencies to get fix for supporing elixir 1.15
+
+### Fixed
+
 ## 1.0.0
 
 - Bump to version 1.0.0, has been used in production in several places
