@@ -11,14 +11,21 @@ jobs:
     strategy:
       matrix:
         include:
-          - elixir: "1.14"
-            otp: "23"
-          - elixir: "1.14"
+          - elixir: "1.15"
             otp: "24"
-          - elixir: "1.14"
+          - elixir: "1.15"
             otp: "25"
+          - elixir: "1.15"
+            otp: "26"
             should_lint: true
 
+          - elixir: "1.14"
+            otp: "23"
+          - elixir: "1.14"
+            otp: "24"
+          - elixir: "1.14"
+            otp: "25"
+
           - elixir: "1.13"
             otp: "22"
           - elixir: "1.13"
@@ -41,11 +48,6 @@ jobs:
             otp: "23"
           - elixir: "1.11"
             otp: "24"
-
-          - elixir: "1.10"
-            otp: "22"
-          - elixir: "1.10"
-            otp: "23"
 
     steps:
       - uses: actions/checkout@v3
