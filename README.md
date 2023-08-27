@@ -11,6 +11,11 @@ Currently supports:
 
 1. Downloading blobs
 2. Uploading blobs
+3. Deleting blobs
+4. Stream uploading blobs
+5. Listing blobs
+6. Creating containers
+7. Listing containers
 
 ## Installation
 
