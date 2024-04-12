@@ -75,6 +75,9 @@ defmodule Azurex.Blob.Config do
       iex> parse_connection_string("Key=value")
       %{"Key" => "value"}
 
+      iex> parse_connection_string("Key=value;")
+      %{"Key" => "value"}
+
       iex> parse_connection_string("Key1=hello;Key2=world")
       %{"Key1" => "hello", "Key2" => "world"}
 
@@ -85,7 +88,7 @@ defmodule Azurex.Blob.Config do
 
   def parse_connection_string(connection_string) do
     connection_string
-    |> String.split(";")
+    |> String.split(";", trim: true)
     |> Enum.map(&String.split(&1, "=", parts: 2))
     |> Map.new(fn [key, value] -> {key, value} end)
   end
