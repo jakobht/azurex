@@ -5,15 +5,17 @@ defmodule Azurex.Blob.Container do
   alias Azurex.Blob.Config
   alias Azurex.Authorization.SharedKey
 
-  def head_container(container) do
+  def head_container(container, overrides \\ []) do
+    connection_params = Config.get_connection_params(overrides)
+
     %HTTPoison.Request{
-      url: Config.api_url() <> "/" <> container,
+      url: Config.api_url(connection_params) <> "/" <> container,
       params: [restype: "container"],
       method: :head
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key()
+      storage_account_name: Config.storage_account_name(connection_params),
+      storage_account_key: Config.storage_account_key(connection_params)
     )
     |> HTTPoison.request()
     |> case do
@@ -24,15 +26,17 @@ defmodule Azurex.Blob.Container do
     end
   end
 
-  def create(container) do
+  def create(container, overrides \\ []) do
+    connection_params = Config.get_connection_params(overrides)
+
     %HTTPoison.Request{
-      url: Config.api_url() <> "/" <> container,
+      url: Config.api_url(connection_params) <> "/" <> container,
       params: [restype: "container"],
       method: :put
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
+      storage_account_name: Config.storage_account_name(connection_params),
+      storage_account_key: Config.storage_account_key(connection_params),
       content_type: "application/octet-stream"
     )
     |> HTTPoison.request()

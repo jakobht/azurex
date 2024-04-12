@@ -43,6 +43,21 @@ config :azurex, Azurex.Blob.Config,
   storage_account_connection_string: "Storage=Account;Connection=String" # Required if storage account `name` and `key` not set
 ```
 
+Each of these options is then overridable per-request, if you need to work with multiple instances:
+
+```elixir
+Azurex.Blob.list_blobs(container: "other", api_uri: "https://other.blob.net")
+
+Azurex.Blob.get_blob("file.txt", [
+  storage_account_connection_string: "Account=Storage;String=Connection"
+])
+
+Azurex.Blob.put_blob("file.txt", "contents", "text/plain", [
+  storage_account_key: "key",
+  storage_account_name: "name"
+])
+```
+
 ## Documentation
 
 Documentation can be found at [https://hexdocs.pm/azurex](https://hexdocs.pm/azurex). Or generated using [ExDoc](https://github.com/elixir-lang/ex_doc)
