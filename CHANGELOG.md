@@ -9,6 +9,8 @@ This project adheres to [Semantic Versioning](http://semver.org/).
 
 ### Fixed
 
+- Don't crash on connection strings with trailing semicolon
+
 ---
 
 ## 1.1.0
