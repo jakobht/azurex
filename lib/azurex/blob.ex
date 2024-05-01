@@ -233,15 +233,13 @@ defmodule Azurex.Blob do
     end
   end
 
-  defp blob_request(name, overrides \\ [], method, params, headers \\ [], options \\ []) do
+  defp blob_request(name, overrides, method, params) do
     connection_params = Config.get_connection_params(overrides)
 
     %HTTPoison.Request{
       method: method,
       url: get_url(name, connection_params),
-      params: params,
-      headers: headers,
-      options: options
+      params: params
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(connection_params),
