@@ -169,7 +169,7 @@ defmodule Azurex.Blob do
 
   @doc """
   Copies a blob to a destination.
-  
+
   Note: Azure’s ‘[Copy Blob from URL](https://learn.microsoft.com/en-us/rest/api/storageservices/copy-blob-from-url)’
   operation has a maximum size of 256 MiB.
   """
