@@ -61,6 +61,9 @@ defmodule Azurex.Blob do
       iex> put_blob("filename.txt", "file contents", "text/plain")
       {:error, %HTTPoison.Response{}}
 
+      iex> put_blob("filename.txt", "file contents", "text/plain")
+      {:error, %HTTPoison.Response{}}
+
   """
   @spec put_blob(
           String.t(),
@@ -94,14 +97,19 @@ defmodule Azurex.Blob do
   def put_blob(name, blob, content_type, container, params) do
     content_type = content_type || "application/octet-stream"
 
+    headers =
+      [
+        {"x-ms-blob-type", "BlockBlob"}
+      ] ++ Keyword.get(params, :headers, [])
+
+    params = params |> Keyword.delete(:headers)
+
     %HTTPoison.Request{
       method: :put,
       url: get_url(container, name),
       params: params,
       body: blob,
-      headers: [
-        {"x-ms-blob-type", "BlockBlob"}
-      ],
+      headers: headers,
       # Blob storage only answers when the whole file has been uploaded, so recv_timeout
       # is not applicable for the put request, so we set it to infinity
       options: [recv_timeout: :infinity]

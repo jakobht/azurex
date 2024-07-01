@@ -22,17 +22,21 @@ defmodule Azurex.Blob.Block do
   def put_block(container, chunk, name, params) do
     block_id = build_block_id()
     content_type = "application/octet-stream"
-    params = [{:comp, "block"}, {:blockid, block_id} | params]
+
+    headers =
+      [
+        {"content-type", content_type},
+        {"content-length", byte_size(chunk)}
+      ] ++ Keyword.get(params, :headers, [])
+
+    params = [{:comp, "block"}, {:blockid, block_id} | Keyword.delete(params, :headers)]
 
     %HTTPoison.Request{
       method: :put,
       url: Blob.get_url(container, name),
       params: params,
       body: chunk,
-      headers: [
-        {"content-type", content_type},
-        {"content-length", byte_size(chunk)}
-      ]
+      headers: headers
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -55,9 +59,16 @@ defmodule Azurex.Blob.Block do
   @spec put_block_list(list(), String.t(), String.t(), String.t() | nil, list()) ::
           :ok | {:error, term()}
   def put_block_list(block_ids, container, name, blob_content_type, params) do
-    params = [{:comp, "blocklist"} | params]
     content_type = "text/plain; charset=UTF-8"
     blob_content_type = blob_content_type || "application/octet-stream"
+
+    headers =
+      [
+        {"content-type", content_type},
+        {"x-ms-blob-content-type", blob_content_type}
+      ] ++ Keyword.get(params, :headers, [])
+
+    params = [{:comp, "blocklist"} | Keyword.delete(params, :headers)]
 
     blocks =
       block_ids
@@ -77,10 +88,7 @@ defmodule Azurex.Blob.Block do
       url: Blob.get_url(container, name),
       params: params,
       body: body,
-      headers: [
-        {"content-type", content_type},
-        {"x-ms-blob-content-type", blob_content_type}
-      ]
+      headers: headers
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
