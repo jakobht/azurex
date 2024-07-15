@@ -61,6 +61,9 @@ defmodule Azurex.Blob do
       iex> put_blob("filename.txt", "file contents", "text/plain")
       {:error, %HTTPoison.Response{}}
 
+      iex> put_blob("filename.txt", "file contents", "text/plain", headers: [{"x-ms-meta-id", "1234"}])
+      {:error, %HTTPoison.Response{}}
+
   """
   @spec put_blob(
           String.t(),
