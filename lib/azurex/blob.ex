@@ -130,7 +130,10 @@ defmodule Azurex.Blob do
       iex> get_blob("filename.txt", "container")
       {:ok, "file contents"}
 
-      iex> get_blob("filename.txt", nil, options: [timeout: 10])
+      iex> get_blob("filename.txt", nil, timeout: 10)
+      {:ok, "file contents"}
+
+      iex> get_blob("filename.txt", nil, timeout: 10, headers: [{"x-ms-range", "bytes=0-10"}])
       {:ok, "file contents"}
 
       iex> get_blob("filename.txt")
@@ -140,8 +143,8 @@ defmodule Azurex.Blob do
   @spec get_blob(String.t(), optional_string) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def get_blob(name, container \\ nil, opts \\ []) do
-    blob_request(name, container, :get, opts)
+  def get_blob(name, container \\ nil, options \\ []) do
+    blob_request(name, container, :get, options)
     |> HTTPoison.request()
     |> case do
       {:ok, %{body: blob, status_code: 200}} -> {:ok, blob}
@@ -211,10 +214,9 @@ defmodule Azurex.Blob do
     end
   end
 
-  defp blob_request(name, container, method, opts) do
-    params = Keyword.get(opts, :params, [])
-    headers = Keyword.get(opts, :headers, [])
-    options = Keyword.get(opts, :options, [])
+  def create_request(name, container, method, options) do
+    {params, options} = Keyword.pop(options, :params, [])
+    {headers, options} = Keyword.pop(options, :headers, [])
 
     %HTTPoison.Request{
       method: method,
@@ -223,6 +225,10 @@ defmodule Azurex.Blob do
       headers: headers,
       options: options
     }
+  end
+
+  def blob_request(name, container, method, options) do
+    create_request(name, container, method, options)
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
       storage_account_key: Config.storage_account_key()
