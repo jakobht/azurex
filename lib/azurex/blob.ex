@@ -214,7 +214,7 @@ defmodule Azurex.Blob do
     end
   end
 
-  def create_request(name, container, method, options) do
+  def blob_request(name, container, method, options) do
     {params, options} = Keyword.pop(options, :params, [])
     {headers, options} = Keyword.pop(options, :headers, [])
 
@@ -225,10 +225,6 @@ defmodule Azurex.Blob do
       headers: headers,
       options: options
     }
-  end
-
-  def blob_request(name, container, method, options) do
-    create_request(name, container, method, options)
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
       storage_account_key: Config.storage_account_key()
