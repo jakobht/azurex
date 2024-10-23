@@ -7,12 +7,16 @@ defmodule Azurex.BlobIntegrationTests do
   @sample_file_contents "sample file\ncontents\n"
   @integration_testing_container "integrationtestingcontainer"
 
-  setup do
+  def setup_azurite1 do
     # set integration test env in case another test has overwritten it
     AzuriteSetup.set_env()
+    AzuriteSetup.create_test_containers()
+    AzuriteSetup.create_test_blob()
   end
 
   describe "upload and download a blob" do
+    setup do: setup_azurite1()
+
     test "using default container" do
       blob_name = make_blob_name()
 
@@ -87,6 +91,8 @@ defmodule Azurex.BlobIntegrationTests do
   end
 
   describe "head blob" do
+    setup do: setup_azurite1()
+
     test "using default container" do
       blob_name = make_blob_name()
 
@@ -125,6 +131,8 @@ defmodule Azurex.BlobIntegrationTests do
   end
 
   describe "copying a blob" do
+    setup do: setup_azurite1()
+
     setup do
       blob_name = make_blob_name()
 
@@ -147,6 +155,8 @@ defmodule Azurex.BlobIntegrationTests do
   end
 
   describe "list blobs" do
+    setup do: setup_azurite1()
+
     test "simple, not checking result" do
       assert {:ok, _result_not_checked} = Blob.list_blobs()
     end
@@ -162,12 +172,16 @@ defmodule Azurex.BlobIntegrationTests do
   end
 
   describe "test containers" do
+    setup do: setup_azurite1()
+
     test "list containers" do
       assert {:ok, _results} = Blob.list_containers()
     end
   end
 
   describe "delete blob" do
+    setup do: setup_azurite1()
+
     test "delete_blob/3 deletes the blob from the container" do
       blob_name = make_blob_name()
 
@@ -180,6 +194,69 @@ defmodule Azurex.BlobIntegrationTests do
       assert :ok = Blob.delete_blob(blob_name)
 
       assert {:error, :not_found} = Blob.head_blob(blob_name)
+    end
+  end
+
+  describe "overriding the storage account configuration" do
+    setup do
+      AzuriteSetup.set_env(
+        "AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:11000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:11001/devstoreaccount1;TableEndpoint=http://127.0.0.1:11002/devstoreaccount1",
+        :other_config
+      )
+
+      AzuriteSetup.create_test_containers(:other_config)
+
+      # Put some dummy config in here pointing at an _incorrect_ account name.
+      # If we don't do this, and this test runs first, the test of the error
+      # case fails due to an exception being raised by the library about
+      # missing config. This is existing behaviour of the library that we
+      # didn't think needed to change.
+      AzuriteSetup.set_env(
+        "AccountName=idontexist;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:12000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:12001/devstoreaccount1;TableEndpoint=http://127.0.0.1:12002/devstoreaccount1",
+        :azurex
+      )
+    end
+
+    test "can use different config elements" do
+      blob_name = make_blob_name()
+
+      assert Blob.put_blob(
+               blob_name,
+               @sample_file_contents,
+               "text/plain",
+               @integration_testing_container,
+               timeout: 10,
+               ignored_param: "ignored_param_value",
+               config_element: :other_config
+             ) == :ok
+
+      assert Blob.get_blob(
+               blob_name,
+               @integration_testing_container,
+               timeout: 10,
+               config_element: :other_config
+             ) == {:ok, @sample_file_contents}
+    end
+
+    test "cannot fetch blobs from one storage account that were written to another" do
+      blob_name = make_blob_name()
+
+      assert Blob.put_blob(
+               blob_name,
+               @sample_file_contents,
+               "text/plain",
+               @integration_testing_container,
+               timeout: 10,
+               ignored_param: "ignored_param_value",
+               config_element: :other_config
+             ) == :ok
+
+      assert {:error, _} =
+               Blob.get_blob(
+                 blob_name,
+                 @integration_testing_container,
+                 timeout: 10
+               )
     end
   end
 

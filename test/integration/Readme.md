@@ -24,3 +24,19 @@ https://azure.microsoft.com/en-us/products/storage/storage-explorer/#overview
 
 See how to set up Azurite here:
 https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite?tabs=visual-studio
+
+Some integration tests exercise the capability to inject different connection
+strings (including storage accounts) per request. For this reason, to run the
+full suite, we need 2 azurite instances:
+
+```
+mkdir tmp/azurite{1,2}
+
+# In one shell:
+cd tmp/azurite1
+azurite # default flag values
+
+# In another shell:
+cd /tmp/azurite2
+azurite -- --blobPort 11000 --queuePort 11001 --tablePort 11002
+```

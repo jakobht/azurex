@@ -19,14 +19,16 @@ defmodule Azurex.Blob.Block do
   """
   @spec put_block(String.t(), bitstring(), String.t(), list()) ::
           {:ok, String.t()} | {:error, term()}
-  def put_block(container, chunk, name, params) do
+  def put_block(container, chunk, name, options) do
+    {params, options} = Keyword.pop(options, :params, [])
+    {conf_element, _options} = Keyword.pop(options, :config_element, :azurex)
     block_id = build_block_id()
     content_type = "application/octet-stream"
     params = [{:comp, "block"}, {:blockid, block_id} | params]
 
     %HTTPoison.Request{
       method: :put,
-      url: Blob.get_url(container, name),
+      url: Blob.get_url(container, conf_element, name),
       params: params,
       body: chunk,
       headers: [
@@ -35,8 +37,8 @@ defmodule Azurex.Blob.Block do
       ]
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
+      storage_account_name: Config.storage_account_name(conf_element),
+      storage_account_key: Config.storage_account_key(conf_element),
       content_type: content_type
     )
     |> HTTPoison.request()
@@ -54,7 +56,9 @@ defmodule Azurex.Blob.Block do
   """
   @spec put_block_list(list(), String.t(), String.t(), String.t() | nil, list()) ::
           :ok | {:error, term()}
-  def put_block_list(block_ids, container, name, blob_content_type, params) do
+  def put_block_list(block_ids, container, name, blob_content_type, options) do
+    {params, options} = Keyword.pop(options, :params, [])
+    {conf_element, _options} = Keyword.pop(options, :config_element, :azurex)
     params = [{:comp, "blocklist"} | params]
     content_type = "text/plain; charset=UTF-8"
     blob_content_type = blob_content_type || "application/octet-stream"
@@ -74,7 +78,7 @@ defmodule Azurex.Blob.Block do
 
     %HTTPoison.Request{
       method: :put,
-      url: Blob.get_url(container, name),
+      url: Blob.get_url(container, conf_element, name),
       params: params,
       body: body,
       headers: [
@@ -83,8 +87,8 @@ defmodule Azurex.Blob.Block do
       ]
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
+      storage_account_name: Config.storage_account_name(conf_element),
+      storage_account_key: Config.storage_account_key(conf_element),
       content_type: content_type
     )
     |> HTTPoison.request()
