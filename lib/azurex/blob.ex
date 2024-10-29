@@ -10,14 +10,14 @@ defmodule Azurex.Blob do
 
   @typep optional_string :: String.t() | nil
 
-  def list_containers(conf_element \\ :azurex) do
+  def list_containers do
     %HTTPoison.Request{
-      url: Config.api_url(conf_element) <> "/",
+      url: Config.api_url() <> "/",
       params: [comp: "list"]
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(conf_element),
-      storage_account_key: Config.storage_account_key(conf_element)
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key()
     )
     |> HTTPoison.request()
     |> case do
@@ -71,34 +71,32 @@ defmodule Azurex.Blob do
         ) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def put_blob(name, blob, content_type, container \\ nil, options \\ [])
+  def put_blob(name, blob, content_type, container \\ nil, params \\ [])
 
-  def put_blob(name, {:stream, bitstream}, content_type, container, options) do
+  def put_blob(name, {:stream, bitstream}, content_type, container, params) do
     content_type = content_type || "application/octet-stream"
 
     bitstream
     |> Stream.transform(
       fn -> [] end,
       fn chunk, acc ->
-        with {:ok, block_id} <- Block.put_block(container, chunk, name, options) do
+        with {:ok, block_id} <- Block.put_block(container, chunk, name, params) do
           {[], [block_id | acc]}
         end
       end,
       fn acc ->
-        Block.put_block_list(acc, container, name, content_type, options)
+        Block.put_block_list(acc, container, name, content_type, params)
       end
     )
     |> Stream.run()
   end
 
-  def put_blob(name, blob, content_type, container, options) do
-    {params, options} = Keyword.pop(options, :params, [])
-    {conf_element, _options} = Keyword.pop(options, :config_element, :azurex)
+  def put_blob(name, blob, content_type, container, params) do
     content_type = content_type || "application/octet-stream"
 
     %HTTPoison.Request{
       method: :put,
-      url: get_url(container, conf_element, name),
+      url: get_url(container, name),
       params: params,
       body: blob,
       headers: [
@@ -109,8 +107,8 @@ defmodule Azurex.Blob do
       options: [recv_timeout: :infinity]
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(conf_element),
-      storage_account_key: Config.storage_account_key(conf_element),
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key(),
       content_type: content_type
     )
     |> HTTPoison.request()
@@ -182,17 +180,17 @@ defmodule Azurex.Blob do
           {:ok, HTTPoison.Response.t()} | {:error, term()}
   def copy_blob(source_name, destination_name, container \\ nil) do
     content_type = "application/octet-stream"
-    source_url = get_url(container, :azurex, source_name)
+    source_url = get_url(container, source_name)
     headers = [{"x-ms-copy-source", source_url}, {"content-type", content_type}]
 
     %HTTPoison.Request{
       method: :put,
-      url: get_url(container, :azurex, destination_name),
+      url: get_url(container, destination_name),
       headers: headers
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(:azurex),
-      storage_account_key: Config.storage_account_key(:azurex),
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key(),
       content_type: content_type
     )
     |> HTTPoison.request()
@@ -219,18 +217,17 @@ defmodule Azurex.Blob do
   def blob_request(name, container, method, options) do
     {params, options} = Keyword.pop(options, :params, [])
     {headers, options} = Keyword.pop(options, :headers, [])
-    {conf_element, options} = Keyword.pop(options, :config_element, :azurex)
 
     %HTTPoison.Request{
       method: method,
-      url: get_url(container, conf_element, name),
+      url: get_url(container, name),
       params: params,
       headers: headers,
       options: options
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(conf_element),
-      storage_account_key: Config.storage_account_key(conf_element)
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key()
     )
   end
 
@@ -248,12 +245,9 @@ defmodule Azurex.Blob do
   @spec list_blobs(optional_string) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def list_blobs(container \\ nil, options \\ []) do
-    {params, options} = Keyword.pop(options, :params, [])
-    {conf_element, _options} = Keyword.pop(options, :config_element, :azurex)
-
+  def list_blobs(container \\ nil, params \\ []) do
     %HTTPoison.Request{
-      url: "#{Config.api_url(conf_element)}/#{get_container(container, conf_element)}",
+      url: "#{Config.api_url()}/#{get_container(container)}",
       params:
         [
           comp: "list",
@@ -261,8 +255,8 @@ defmodule Azurex.Blob do
         ] ++ params
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(conf_element),
-      storage_account_key: Config.storage_account_key(conf_element)
+      storage_account_name: Config.storage_account_name(),
+      storage_account_key: Config.storage_account_key()
     )
     |> HTTPoison.request()
     |> case do
@@ -275,20 +269,20 @@ defmodule Azurex.Blob do
   @doc """
   Returns the url for a container (defaults to the one in `Azurex.Blob.Config`)
   """
-  @spec get_url(optional_string, String.t()) :: String.t()
-  def get_url(container, conf_element) do
-    "#{Config.api_url(conf_element)}/#{get_container(container, conf_element)}"
+  @spec get_url(optional_string) :: String.t()
+  def get_url(container) do
+    "#{Config.api_url()}/#{get_container(container)}"
   end
 
   @doc """
   Returns the url for a file in a container (defaults to the one in `Azurex.Blob.Config`)
   """
   @spec get_url(optional_string, String.t()) :: String.t()
-  def get_url(container, conf_element, blob_name) do
-    "#{get_url(container, conf_element)}/#{blob_name}"
+  def get_url(container, blob_name) do
+    "#{get_url(container)}/#{blob_name}"
   end
 
-  defp get_container(container, conf_element) do
-    container || Config.default_container(conf_element)
+  defp get_container(container) do
+    container || Config.default_container()
   end
 end

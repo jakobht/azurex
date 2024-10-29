@@ -25,7 +25,7 @@ defmodule Azurex.Blob.SharedAccessSignature do
   """
   @spec sas_url(String.t(), String.t(), [{atom(), any()}]) :: String.t()
   def sas_url(container, resource, opts \\ []) do
-    base_url = Azurex.Blob.Config.api_url(:azurex)
+    base_url = Azurex.Blob.Config.api_url()
     resource_type = Keyword.get(opts, :resource_type, :container)
     permissions = Keyword.get(opts, :permissions, [:read])
     from = Keyword.get(opts, :from, DateTime.utc_now())
@@ -38,8 +38,8 @@ defmodule Azurex.Blob.SharedAccessSignature do
         resource,
         {from, expiry},
         permissions,
-        Azurex.Blob.Config.storage_account_name(:azurex),
-        Azurex.Blob.Config.storage_account_key(:azurex)
+        Azurex.Blob.Config.storage_account_name(),
+        Azurex.Blob.Config.storage_account_key()
       )
 
     "#{Path.join(base_url, resource)}?#{token}"

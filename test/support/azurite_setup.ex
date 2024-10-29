@@ -9,26 +9,26 @@ defmodule AzuriteSetup do
   @integration_testing_container "integrationtestingcontainer"
   @test_blob_name "test_blob"
 
-  def set_env(conn_str \\ @connection_string, config_element \\ :azurex) do
-    Application.put_env(config_element, Azurex.Blob.Config,
+  def set_env do
+    Application.put_env(:azurex, Azurex.Blob.Config,
       default_container: @default_container,
-      storage_account_connection_string: conn_str
+      storage_account_connection_string: @connection_string
     )
   end
 
-  def create_test_containers(config_element \\ :azurex) do
+  def create_test_containers do
     Enum.each(
       [
         @default_container,
         @integration_testing_container
       ],
-      &create_test_container(&1, config_element)
+      &create_test_container(&1)
     )
   end
 
-  defp create_test_container(container, config_element) do
+  defp create_test_container(container) do
     container
-    |> Azurex.Blob.Container.create(config_element)
+    |> Azurex.Blob.Container.create()
     |> case do
       {:ok, _} -> :ok
       {:error, :already_exists} -> :ok
