@@ -41,6 +41,13 @@ defmodule Azurex.Blob do
   argument of `nil` will result in the blob being assigned the default content
   type `"application/octet-stream"`.
 
+  ## The `options` Argument
+
+  The last argument of this function is a keyword list that can contain the following options:
+    * `params`: a list of additional query parameters to include in the request
+    * `headers`: a list of additional headers to include in the request
+    * any other options that can be passed to `HTTPoison.request/1`
+
   ## Examples
 
       iex> put_blob("filename.txt", "file contents", "text/plain")
@@ -55,7 +62,10 @@ defmodule Azurex.Blob do
       iex> put_blob("filename.txt", "file contents", "text/plain", "container")
       :ok
 
-      iex> put_blob("filename.txt", "file contents", "text/plain", nil, timeout: 10)
+      iex> put_blob("filename.txt", "file contents", "text/plain", nil, params: [timeout: 10])
+      :ok
+
+      iex> put_blob("filename.txt", "file contents", "text/plain", nil, params: [timeout: 10], headers: [{"x-ms-meta-foo", "bar"}])
       :ok
 
       iex> put_blob("filename.txt", "file contents", "text/plain")
@@ -71,28 +81,31 @@ defmodule Azurex.Blob do
         ) ::
           :ok
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def put_blob(name, blob, content_type, container \\ nil, params \\ [])
+  def put_blob(name, blob, content_type, container \\ nil, options \\ [])
 
-  def put_blob(name, {:stream, bitstream}, content_type, container, params) do
+  def put_blob(name, {:stream, bitstream}, content_type, container, options) do
     content_type = content_type || "application/octet-stream"
 
     bitstream
     |> Stream.transform(
       fn -> [] end,
       fn chunk, acc ->
-        with {:ok, block_id} <- Block.put_block(container, chunk, name, params) do
+        with {:ok, block_id} <- Block.put_block(container, chunk, name, options) do
           {[], [block_id | acc]}
         end
       end,
       fn acc ->
-        Block.put_block_list(acc, container, name, content_type, params)
+        Block.put_block_list(acc, container, name, content_type, options)
       end
     )
     |> Stream.run()
   end
 
-  def put_blob(name, blob, content_type, container, params) do
+  def put_blob(name, blob, content_type, container, options) do
     content_type = content_type || "application/octet-stream"
+    {params, options} = Keyword.pop(options, :params, [])
+    {headers, options} = Keyword.pop(options, :headers, [])
+    headers = Enum.map(headers, fn {k, v} -> {to_string(k), v} end)
 
     %HTTPoison.Request{
       method: :put,
@@ -100,11 +113,11 @@ defmodule Azurex.Blob do
       params: params,
       body: blob,
       headers: [
-        {"x-ms-blob-type", "BlockBlob"}
+        {"x-ms-blob-type", "BlockBlob"} | headers
       ],
       # Blob storage only answers when the whole file has been uploaded, so recv_timeout
       # is not applicable for the put request, so we set it to infinity
-      options: [recv_timeout: :infinity]
+      options: [recv_timeout: :infinity] ++ options
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),

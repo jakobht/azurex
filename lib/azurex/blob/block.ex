@@ -19,9 +19,12 @@ defmodule Azurex.Blob.Block do
   """
   @spec put_block(String.t(), bitstring(), String.t(), list()) ::
           {:ok, String.t()} | {:error, term()}
-  def put_block(container, chunk, name, params) do
+  def put_block(container, chunk, name, options) do
     block_id = build_block_id()
     content_type = "application/octet-stream"
+    {params, options} = Keyword.pop(options, :params, [])
+    {headers, options} = Keyword.pop(options, :headers, [])
+    headers = Enum.map(headers, fn {k, v} -> {to_string(k), v} end)
     params = [{:comp, "block"}, {:blockid, block_id} | params]
 
     %HTTPoison.Request{
@@ -31,8 +34,9 @@ defmodule Azurex.Blob.Block do
       body: chunk,
       headers: [
         {"content-type", content_type},
-        {"content-length", byte_size(chunk)}
-      ]
+        {"content-length", byte_size(chunk)} | headers
+      ],
+      options: options
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
@@ -54,7 +58,10 @@ defmodule Azurex.Blob.Block do
   """
   @spec put_block_list(list(), String.t(), String.t(), String.t() | nil, list()) ::
           :ok | {:error, term()}
-  def put_block_list(block_ids, container, name, blob_content_type, params) do
+  def put_block_list(block_ids, container, name, blob_content_type, options) do
+    {params, options} = Keyword.pop(options, :params, [])
+    {headers, options} = Keyword.pop(options, :headers, [])
+    headers = Enum.map(headers, fn {k, v} -> {to_string(k), v} end)
     params = [{:comp, "blocklist"} | params]
     content_type = "text/plain; charset=UTF-8"
     blob_content_type = blob_content_type || "application/octet-stream"
@@ -79,8 +86,9 @@ defmodule Azurex.Blob.Block do
       body: body,
       headers: [
         {"content-type", content_type},
-        {"x-ms-blob-content-type", blob_content_type}
-      ]
+        {"x-ms-blob-content-type", blob_content_type} | headers
+      ],
+      options: options
     }
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
