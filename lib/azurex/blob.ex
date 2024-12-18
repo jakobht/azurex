@@ -169,11 +169,11 @@ defmodule Azurex.Blob do
   @doc """
   Checks if a blob exists, and returns metadata for the blob if it does
   """
-  @spec head_blob(String.t(), optional_string) ::
+  @spec head_blob(String.t(), optional_string, keyword()) ::
           {:ok, list}
           | {:error, :not_found | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def head_blob(name, container \\ nil, params \\ []) do
-    blob_request(name, container, :head, params)
+  def head_blob(name, container \\ nil, options \\ []) do
+    blob_request(name, container, :head, options)
     |> HTTPoison.request()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 200, headers: details}} -> {:ok, details}
@@ -214,10 +214,10 @@ defmodule Azurex.Blob do
     end
   end
 
-  @spec delete_blob(String.t(), optional_string()) ::
+  @spec delete_blob(String.t(), optional_string(), keyword()) ::
           :ok | {:error, :not_found | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def delete_blob(name, container \\ nil, params \\ []) do
-    blob_request(name, container, :delete, params)
+  def delete_blob(name, container \\ nil, options \\ []) do
+    blob_request(name, container, :delete, options)
     |> HTTPoison.request()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 202}} -> :ok
@@ -255,10 +255,12 @@ defmodule Azurex.Blob do
       iex> Azurex.Blob.list_blobs()
       {:error, %HTTPoison.Response{}}
   """
-  @spec list_blobs(optional_string) ::
+  @spec list_blobs(optional_string, keyword()) ::
           {:ok, binary()}
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
-  def list_blobs(container \\ nil, params \\ []) do
+  def list_blobs(container \\ nil, options \\ []) do
+    {params, _options} = Keyword.pop(options, :params, [])
+
     %HTTPoison.Request{
       url: "#{Config.api_url()}/#{get_container(container)}",
       params:
