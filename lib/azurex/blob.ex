@@ -80,6 +80,7 @@ defmodule Azurex.Blob do
   @spec put_blob(
           String.t(),
           binary() | {:stream, Enumerable.t()},
+          String.t(),
           keyword()
         ) ::
           :ok
@@ -109,7 +110,7 @@ defmodule Azurex.Blob do
     {params, options} = Keyword.pop(options, :params, [])
     {headers, options} = Keyword.pop(options, :headers, [])
     headers = Enum.map(headers, fn {k, v} -> {to_string(k), v} end)
-    connection_params = Config.get_connection_params(options)
+    {connection_params, options} = Config.get_connection_params(options)
 
     %HTTPoison.Request{
       method: :put,
@@ -205,7 +206,7 @@ defmodule Azurex.Blob do
           {:ok, HTTPoison.Response.t()} | {:error, term()}
   def copy_blob(source_name, destination_name, overrides \\ []) do
     content_type = "application/octet-stream"
-    connection_params = Config.get_connection_params(overrides)
+    {connection_params, _overrides} = Config.get_connection_params(overrides)
     source_url = get_url(source_name, connection_params)
     headers = [{"x-ms-copy-source", source_url}, {"content-type", content_type}]
 
@@ -243,7 +244,7 @@ defmodule Azurex.Blob do
   def blob_request(name, method, options) do
     {params, options} = Keyword.pop(options, :params, [])
     {headers, options} = Keyword.pop(options, :headers, [])
-    connection_params = Config.get_connection_params(options)
+    {connection_params, options} = Config.get_connection_params(options)
 
     %HTTPoison.Request{
       method: method,
@@ -277,7 +278,7 @@ defmodule Azurex.Blob do
           | {:error, HTTPoison.AsyncResponse.t() | HTTPoison.Error.t() | HTTPoison.Response.t()}
   def list_blobs(options \\ []) do
     {params, options} = Keyword.pop(options, :params, [])
-    connection_params = Config.get_connection_params(options)
+    {connection_params, _options} = Config.get_connection_params(options)
 
     %HTTPoison.Request{
       url: get_url(connection_params),

@@ -31,7 +31,7 @@ defmodule Azurex.Blob.SharedAccessSignature do
   """
   @spec sas_url(Config.config_overrides(), String.t(), [{atom(), any()}]) :: String.t()
   def sas_url(overrides \\ [], resource, opts \\ []) do
-    connection_params = Config.get_connection_params(overrides)
+    {connection_params, _overrides} = Config.get_connection_params(overrides)
     base_url = Config.api_url(connection_params)
     resource_type = Keyword.get(opts, :resource_type, :container)
     permissions = Keyword.get(opts, :permissions, [:read])

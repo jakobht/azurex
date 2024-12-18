@@ -57,12 +57,12 @@ defmodule Azurex.BlobIntegrationTests do
                blob_name,
                @sample_file_contents,
                "text/plain",
-               @integration_testing_container
+               container: @integration_testing_container
              ) == :ok
 
       assert Blob.get_blob(
                blob_name,
-               @integration_testing_container
+               container: @integration_testing_container
              ) == {:ok, @sample_file_contents}
     end
 
@@ -73,7 +73,7 @@ defmodule Azurex.BlobIntegrationTests do
                blob_name,
                @sample_file_contents,
                "text/plain",
-               @integration_testing_container,
+               container: @integration_testing_container,
                options: [
                  params: [timeout: 10, ignored_param: "ignored_param_value"],
                  headers: [ignored_header: "ignored_header_value"]
@@ -82,7 +82,7 @@ defmodule Azurex.BlobIntegrationTests do
 
       assert Blob.get_blob(
                blob_name,
-               @integration_testing_container,
+               container: @integration_testing_container,
                timeout: 10
              ) == {:ok, @sample_file_contents}
     end
@@ -98,7 +98,7 @@ defmodule Azurex.BlobIntegrationTests do
 
       AzuriteSetup.set_env()
 
-      assert Blob.get_blob(blob_name, @integration_testing_container) ==
+      assert Blob.get_blob(blob_name, container: @integration_testing_container) ==
                {:ok, @sample_file_contents}
     end
   end
@@ -129,11 +129,11 @@ defmodule Azurex.BlobIntegrationTests do
                blob_name,
                @sample_file_contents,
                "text/plain",
-               @integration_testing_container
+               container: @integration_testing_container
              ) == :ok
 
       assert {:error, :not_found} = Blob.head_blob(blob_name)
-      assert {:ok, headers} = Blob.head_blob(blob_name, @integration_testing_container)
+      assert {:ok, headers} = Blob.head_blob(blob_name, container: @integration_testing_container)
       headers = Map.new(headers)
 
       assert headers["content-md5"] ==
@@ -147,7 +147,6 @@ defmodule Azurex.BlobIntegrationTests do
                blob_name,
                @sample_file_contents,
                "text/plain",
-               nil,
                headers: ["x-ms-meta-foo": "bar"]
              ) == :ok
 
@@ -216,7 +215,8 @@ defmodule Azurex.BlobIntegrationTests do
     end
 
     test "passing container, not checking result" do
-      assert {:ok, _result_not_checked} = Blob.list_blobs(@integration_testing_container)
+      assert {:ok, _result_not_checked} =
+               Blob.list_blobs(container: @integration_testing_container)
     end
 
     test "passing container as connection parameter, not checking result" do
@@ -226,7 +226,7 @@ defmodule Azurex.BlobIntegrationTests do
 
     test "passing container and params, not checking result" do
       assert {:ok, _result_not_checked} =
-               Blob.list_blobs(@integration_testing_container, timeout: 10)
+               Blob.list_blobs(container: @integration_testing_container, timeout: 10)
     end
   end
 

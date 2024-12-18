@@ -26,7 +26,7 @@ defmodule Azurex.Blob.Block do
     {headers, options} = Keyword.pop(options, :headers, [])
     headers = Enum.map(headers, fn {k, v} -> {to_string(k), v} end)
     params = [{:comp, "block"}, {:blockid, block_id} | params]
-    connection_params = Config.get_connection_params(options)
+    {connection_params, options} = Config.get_connection_params(options)
 
     %HTTPoison.Request{
       method: :put,
@@ -66,7 +66,7 @@ defmodule Azurex.Blob.Block do
     params = [{:comp, "blocklist"} | params]
     content_type = "text/plain; charset=UTF-8"
     blob_content_type = blob_content_type || "application/octet-stream"
-    connection_params = Config.get_connection_params(options)
+    {connection_params, options} = Config.get_connection_params(options)
 
     blocks =
       block_ids

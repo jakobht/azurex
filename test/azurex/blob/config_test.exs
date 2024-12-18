@@ -157,13 +157,70 @@ defmodule Azurex.Blob.ConfigTest do
 
   describe "get_connection_params/1" do
     test "assumes it's a container if it's given a string" do
-      assert get_connection_params("container_name") == [container: "container_name"]
+      {conn, remaining} = get_connection_params("container_name")
+      assert conn == [container: "container_name"]
+      assert remaining == []
     end
 
-    test "returns a keyword list as is" do
-      keyword = [storage_account_name: "name", container: "container"]
+    test "returns 2 keyword lists, separating out connection-related configuration" do
+      {conn, remaining} =
+        get_connection_params(
+          foo: "bar",
+          baz: "qux",
+          api_url: "api-url",
+          container: "container",
+          storage_account_connection_string: "sa-conn-string",
+          storage_account_key: "sa-key",
+          storage_account_name: "sa-name"
+        )
 
-      assert get_connection_params(keyword) == keyword
+      assert conn == [
+               api_url: "api-url",
+               container: "container",
+               storage_account_connection_string: "sa-conn-string",
+               storage_account_key: "sa-key",
+               storage_account_name: "sa-name"
+             ]
+
+      assert remaining == [
+               foo: "bar",
+               baz: "qux"
+             ]
+    end
+
+    test "returns 2 keyword lists, separating out connection-related configuration wven when not all elements specified" do
+      {conn, remaining} =
+        get_connection_params(
+          foo: "bar",
+          baz: "qux",
+          api_url: "api-url",
+          container: "container"
+        )
+
+      assert conn == [
+               api_url: "api-url",
+               container: "container"
+             ]
+
+      assert remaining == [
+               foo: "bar",
+               baz: "qux"
+             ]
+    end
+
+    test "returns 2 keyword lists, separating out connection-related configuration wven when no elements specified" do
+      {conn, remaining} =
+        get_connection_params(
+          foo: "bar",
+          baz: "qux"
+        )
+
+      assert conn == []
+
+      assert remaining == [
+               foo: "bar",
+               baz: "qux"
+             ]
     end
   end
 end

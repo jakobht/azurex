@@ -6,7 +6,7 @@ defmodule Azurex.Blob.Container do
   alias Azurex.Authorization.SharedKey
 
   def head_container(container, overrides \\ []) do
-    connection_params = Config.get_connection_params(overrides)
+    {connection_params, _overrides} = Config.get_connection_params(overrides)
 
     %HTTPoison.Request{
       url: Config.api_url(connection_params) <> "/" <> container,
@@ -27,7 +27,7 @@ defmodule Azurex.Blob.Container do
   end
 
   def create(container, overrides \\ []) do
-    connection_params = Config.get_connection_params(overrides)
+    {connection_params, _overrides} = Config.get_connection_params(overrides)
 
     %HTTPoison.Request{
       url: Config.api_url(connection_params) <> "/" <> container,

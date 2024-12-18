@@ -114,10 +114,21 @@ defmodule Azurex.Blob.Config do
   Returns the given configuration keyword list.
   If the parameter is a string, it is interpreted as the container for backwards compatibility.
   """
-  @spec get_connection_params(config_overrides | nil) :: keyword()
-  def get_connection_params(nil), do: []
-  def get_connection_params(container) when is_binary(container), do: [container: container]
-  def get_connection_params(config), do: config
+  @spec get_connection_params(keyword()) :: {keyword(), keyword()}
+  def get_connection_params(nil), do: {[], []}
+  def get_connection_params(container) when is_binary(container), do: {[container: container], []}
+
+  def get_connection_params(config) when is_list(config) do
+    conn_keys = [
+      :api_url,
+      :container,
+      :storage_account_connection_string,
+      :storage_account_key,
+      :storage_account_name
+    ]
+
+    {Keyword.take(config, conn_keys), Keyword.drop(config, conn_keys)}
+  end
 
   @spec get_connection_string_from_params(String.t(), config_overrides) :: String.t() | nil
   defp get_connection_string_from_params(key, connection_params) do

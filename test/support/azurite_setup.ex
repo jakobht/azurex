@@ -41,7 +41,7 @@ defmodule AzuriteSetup do
       @test_blob_name,
       "test_blob_content",
       "text/plain",
-      @default_container
+      container: @default_container
     )
   end
 end
