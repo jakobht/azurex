@@ -10,9 +10,10 @@ defmodule AzurexTest do
     )
 
     request =
-      Azurex.Blob.blob_request("name", "container", :get,
+      Azurex.Blob.blob_request("name", :get,
         recv_timeout: 60_000,
         timeout: 60_000,
+        container: "container",
         params: [param1: "value1"],
         headers: [{"Content-Type", "application/json"}]
       )

@@ -17,19 +17,20 @@ defmodule Azurex.Blob.Block do
 
   On success, returns an :ok tuple with the base64 encoded block_id.
   """
-  @spec put_block(String.t(), bitstring(), String.t(), list()) ::
+  @spec put_block(bitstring(), String.t(), keyword()) ::
           {:ok, String.t()} | {:error, term()}
-  def put_block(container, chunk, name, options) do
+  def put_block(chunk, name, options) do
     block_id = build_block_id()
     content_type = "application/octet-stream"
     {params, options} = Keyword.pop(options, :params, [])
     {headers, options} = Keyword.pop(options, :headers, [])
     headers = Enum.map(headers, fn {k, v} -> {to_string(k), v} end)
     params = [{:comp, "block"}, {:blockid, block_id} | params]
+    connection_params = Config.get_connection_params(options)
 
     %HTTPoison.Request{
       method: :put,
-      url: Blob.get_url(container, name),
+      url: Blob.get_url(name, connection_params),
       params: params,
       body: chunk,
       headers: [
@@ -39,8 +40,8 @@ defmodule Azurex.Blob.Block do
       options: options
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
+      storage_account_name: Config.storage_account_name(connection_params),
+      storage_account_key: Config.storage_account_key(connection_params),
       content_type: content_type
     )
     |> HTTPoison.request()
@@ -56,15 +57,16 @@ defmodule Azurex.Blob.Block do
 
   Block IDs should be base64 encoded, as returned by put_block/2.
   """
-  @spec put_block_list(list(), String.t(), String.t(), String.t() | nil, list()) ::
+  @spec put_block_list(list(), String.t(), String.t() | nil, keyword()) ::
           :ok | {:error, term()}
-  def put_block_list(block_ids, container, name, blob_content_type, options) do
+  def put_block_list(block_ids, name, blob_content_type, options) do
     {params, options} = Keyword.pop(options, :params, [])
     {headers, options} = Keyword.pop(options, :headers, [])
     headers = Enum.map(headers, fn {k, v} -> {to_string(k), v} end)
     params = [{:comp, "blocklist"} | params]
     content_type = "text/plain; charset=UTF-8"
     blob_content_type = blob_content_type || "application/octet-stream"
+    connection_params = Config.get_connection_params(options)
 
     blocks =
       block_ids
@@ -81,7 +83,7 @@ defmodule Azurex.Blob.Block do
 
     %HTTPoison.Request{
       method: :put,
-      url: Blob.get_url(container, name),
+      url: Blob.get_url(name, connection_params),
       params: params,
       body: body,
       headers: [
@@ -91,8 +93,8 @@ defmodule Azurex.Blob.Block do
       options: options
     }
     |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
+      storage_account_name: Config.storage_account_name(connection_params),
+      storage_account_key: Config.storage_account_key(connection_params),
       content_type: content_type
     )
     |> HTTPoison.request()
