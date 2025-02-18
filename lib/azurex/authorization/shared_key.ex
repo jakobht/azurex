@@ -58,7 +58,7 @@ defmodule Azurex.Authorization.SharedKey do
     put_signature(request, signature, storage_account_name, storage_account_key)
   end
 
-  defp put_standard_headers(request, content_type, date) do
+  def put_standard_headers(request, content_type, date) do
     headers =
       if content_type,
         do: [{"content-type", content_type} | request.headers],

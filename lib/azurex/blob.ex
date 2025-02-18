@@ -5,8 +5,8 @@ defmodule Azurex.Blob do
   In the functions below set container as nil to use the one configured in `Azurex.Blob.Config`.
   """
 
+  alias Azurex.Authorization.Auth
   alias Azurex.Blob.{Block, Config}
-  alias Azurex.Authorization.SharedKey
 
   @typep optional_string :: String.t() | nil
 
@@ -15,10 +15,7 @@ defmodule Azurex.Blob do
       url: Config.api_url() <> "/",
       params: [comp: "list"]
     }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key()
-    )
+    |> Auth.authorize_request()
     |> HTTPoison.request()
     |> case do
       {:ok, %{body: xml, status_code: 200}} -> {:ok, xml}
@@ -106,11 +103,7 @@ defmodule Azurex.Blob do
       # is not applicable for the put request, so we set it to infinity
       options: [recv_timeout: :infinity]
     }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
-      content_type: content_type
-    )
+    |> Auth.authorize_request(content_type)
     |> HTTPoison.request()
     |> case do
       {:ok, %{status_code: 201}} -> :ok
@@ -185,11 +178,7 @@ defmodule Azurex.Blob do
       url: get_url(container, destination_name),
       headers: headers
     }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
-      content_type: content_type
-    )
+    |> Auth.authorize_request(content_type)
     |> HTTPoison.request()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 202} = resp} -> {:ok, resp}
@@ -219,10 +208,7 @@ defmodule Azurex.Blob do
       headers: headers,
       options: options
     }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key()
-    )
+    |> Auth.authorize_request()
   end
 
   @doc """
@@ -248,10 +234,7 @@ defmodule Azurex.Blob do
           restype: "container"
         ] ++ params
     }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key()
-    )
+    |> Auth.authorize_request()
     |> HTTPoison.request()
     |> case do
       {:ok, %{body: xml, status_code: 200}} -> {:ok, xml}

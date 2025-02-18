@@ -8,9 +8,8 @@ defmodule Azurex.Blob.Block do
   - [commit a list of blocks as part of a blob](https://learn.microsoft.com/en-us/rest/api/storageservices/put-block-list)
   """
 
-  alias Azurex.Authorization.SharedKey
+  alias Azurex.Authorization.Auth
   alias Azurex.Blob
-  alias Azurex.Blob.Config
 
   @doc """
   Creates a block to be committed to a blob.
@@ -34,11 +33,7 @@ defmodule Azurex.Blob.Block do
         {"content-length", byte_size(chunk)}
       ]
     }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
-      content_type: content_type
-    )
+    |> Auth.authorize_request(content_type)
     |> HTTPoison.request()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 201}} -> {:ok, block_id}
@@ -82,11 +77,7 @@ defmodule Azurex.Blob.Block do
         {"x-ms-blob-content-type", blob_content_type}
       ]
     }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
-      content_type: content_type
-    )
+    |> Auth.authorize_request(content_type)
     |> HTTPoison.request()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 201}} -> :ok

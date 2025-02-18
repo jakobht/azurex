@@ -32,16 +32,30 @@ end
 
 ## Configuration
 
-The configuration should _either_ define `storage_account_name` and `storage_account_key` _or_ `storage_account_connection_string`.
+For authentication, there is support for using both an account key or service principal.
+For configuration of the account key, use _either_ `storage_account_name` and `storage_account_key` _or_ `storage_account_connection_string`.
 
 ```elixir
 config :azurex, Azurex.Blob.Config,
   api_url: "https://sample.blob.core.windows.net", # Optional
   default_container: "defaultcontainer", # Optional
-  storage_account_name: "name",
+  storage_account_name: "sample",
   storage_account_key: "access key",
   storage_account_connection_string: "Storage=Account;Connection=String" # Required if storage account `name` and `key` not set
 ```
+
+For configuration of service principal, use `storage_client_id`, `storage_client_secret`, `storage_tenant_id`.
+
+```elixir
+config :azurex, Azurex.Blob.Config,
+  api_url: "https://sample.blob.core.windows.net", # Optional
+  default_container: "defaultcontainer", # Optional
+  storage_account_name: "sample",
+  storage_client_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx"
+  storage_client_secret: "secret"
+  storage_tenant_id: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
+```
+Note that SAS token generation is currently not supported when using Service Principal.
 
 ## Documentation
 

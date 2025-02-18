@@ -2,8 +2,8 @@ defmodule Azurex.Blob.Container do
   @moduledoc """
   Implementation of Azure Blob Storage
   """
+  alias Azurex.Authorization.Auth
   alias Azurex.Blob.Config
-  alias Azurex.Authorization.SharedKey
 
   def head_container(container) do
     %HTTPoison.Request{
@@ -11,10 +11,7 @@ defmodule Azurex.Blob.Container do
       params: [restype: "container"],
       method: :head
     }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key()
-    )
+    |> Auth.authorize_request()
     |> HTTPoison.request()
     |> case do
       {:ok, %{status_code: 200, headers: headers}} -> {:ok, headers}
@@ -30,11 +27,7 @@ defmodule Azurex.Blob.Container do
       params: [restype: "container"],
       method: :put
     }
-    |> SharedKey.sign(
-      storage_account_name: Config.storage_account_name(),
-      storage_account_key: Config.storage_account_key(),
-      content_type: "application/octet-stream"
-    )
+    |> Auth.authorize_request("application/octet-stream")
     |> HTTPoison.request()
     |> case do
       {:ok, %{status_code: 201}} -> {:ok, container}
