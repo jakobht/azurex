@@ -6,7 +6,7 @@ defmodule Azurex.Authorization.SharedKey do
   As defined in 26 November 2019
   """
 
-  @spec sign(HTTPoison.Request.t(), keyword) :: HTTPoison.Request.t()
+  @spec sign(Req.Request.t(), keyword) :: Req.Request.t()
   def sign(request, opts \\ []) do
     storage_account_name = Keyword.fetch!(opts, :storage_account_name)
     storage_account_key = Keyword.fetch!(opts, :storage_account_key)
@@ -19,7 +19,7 @@ defmodule Azurex.Authorization.SharedKey do
     size = get_size(request)
     headers = format_headers(request.headers)
     uri = format_uri(request.url, storage_account_name)
-    params = format_params(request.params)
+    params = format_params(get_params(request))
 
     signature =
       [
@@ -59,18 +59,18 @@ defmodule Azurex.Authorization.SharedKey do
   end
 
   defp put_standard_headers(request, content_type, date) do
-    headers =
-      if content_type,
-        do: [{"content-type", content_type} | request.headers],
-        else: request.headers
+    # Create a map of headers to add
+    new_headers = %{
+      "x-ms-version" => "2023-01-03",
+      "x-ms-date" => format_date(date)
+    }
 
-    headers = [
-      {"x-ms-version", "2023-01-03"},
-      {"x-ms-date", format_date(date)}
-      | headers
-    ]
+    # Add content-type if provided
+    new_headers =
+      if content_type, do: Map.put(new_headers, "content-type", content_type), else: new_headers
 
-    struct(request, headers: headers)
+    # Merge with existing headers properly
+    Req.merge(request, headers: new_headers)
   end
 
   def format_date(%DateTime{zone_abbr: "UTC"} = date_time) do
@@ -81,26 +81,67 @@ defmodule Azurex.Authorization.SharedKey do
   defp get_method(request), do: request.method |> Atom.to_string() |> String.upcase()
 
   defp get_size(request) do
-    size = request.body |> byte_size()
+    size =
+      case request.body do
+        nil -> 0
+        body when is_binary(body) -> byte_size(body)
+        _ -> 0
+      end
+
     if size != 0, do: size, else: ""
   end
 
   defp format_headers(headers) do
-    headers
+    headers_list =
+      case headers do
+        # If it's a map (Req's headers structure)
+        headers when is_map(headers) ->
+          Enum.map(headers, fn {k, v} -> {k, v} end)
+
+        # If it's a list (old format or manually created)
+        headers when is_list(headers) ->
+          headers
+
+        # Default to empty list if nil
+        nil ->
+          []
+      end
+
+    headers_list
     |> Enum.map(fn {k, v} -> {String.downcase(k), v} end)
     |> Enum.filter(fn {k, _v} -> String.starts_with?(k, "x-ms-") end)
     |> Enum.group_by(fn {k, _v} -> k end, fn {_k, v} -> v end)
     |> Enum.sort_by(fn {k, _v} -> k end)
-    |> Enum.map(fn {k, v} ->
-      v = v |> Enum.sort() |> Enum.join(",")
+    |> Enum.map_join("\n", fn {k, v} ->
+      v =
+        v
+        |> List.flatten()
+        # Ensure everything is a string
+        |> Enum.map(&to_string/1)
+        |> Enum.sort()
+        |> Enum.join(",")
+
       "#{k}:#{v}"
     end)
-    |> Enum.join("\n")
+  end
+
+  defp get_params(request) do
+    case request do
+      %{params: params} when not is_nil(params) ->
+        params
+
+      _ ->
+        # In Req, params might be nested in options
+        request
+        |> Map.get(:options, %{})
+        |> Map.get(:params, [])
+    end
   end
 
   defp format_uri(uri_str, storage_account_name) do
     path =
-      URI.parse(uri_str)
+      uri_str
+      |> URI.parse()
       |> Map.get(:path, "/")
 
     [
@@ -119,13 +160,12 @@ defmodule Azurex.Authorization.SharedKey do
   end
 
   defp put_signature(request, signature, storage_account_name, storage_account_key) do
-    signature =
+    mac_signature =
       :crypto.mac(:hmac, :sha256, storage_account_key, signature)
       |> Base.encode64()
 
-    authorization = {"Authorization", "SharedKey #{storage_account_name}:#{signature}"}
+    authorization = {"Authorization", "SharedKey #{storage_account_name}:#{mac_signature}"}
 
-    headers = [authorization | request.headers]
-    struct(request, headers: headers)
+    Req.merge(request, headers: [authorization])
   end
 end

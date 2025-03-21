@@ -22,28 +22,30 @@ defmodule Azurex.Blob.Block do
   def put_block(container, chunk, name, params) do
     block_id = build_block_id()
     content_type = "application/octet-stream"
-    params = [{:comp, "block"}, {:blockid, block_id} | params]
 
-    %HTTPoison.Request{
-      method: :put,
-      url: Blob.get_url(container, name),
-      params: params,
-      body: chunk,
-      headers: [
-        {"content-type", content_type},
-        {"content-length", byte_size(chunk)}
-      ]
-    }
+    request =
+      Req.new(
+        method: :put,
+        url: Blob.get_url(container, name),
+        params: [{:comp, "block"}, {:blockid, block_id} | params],
+        body: chunk,
+        headers: [
+          {"content-type", content_type},
+          {"content-length", byte_size(chunk)}
+        ]
+      )
+
+    request
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
       storage_account_key: Config.storage_account_key(),
       content_type: content_type
     )
-    |> HTTPoison.request()
+    |> Req.request()
     |> case do
-      {:ok, %HTTPoison.Response{status_code: 201}} -> {:ok, block_id}
-      {:ok, err} -> {:error, err}
-      {:error, err} -> {:error, err}
+      {:ok, %{status: 201}} -> {:ok, block_id}
+      {:ok, response} -> {:error, response}
+      {:error, exception} -> {:error, exception}
     end
   end
 
@@ -55,15 +57,13 @@ defmodule Azurex.Blob.Block do
   @spec put_block_list(list(), String.t(), String.t(), String.t() | nil, list()) ::
           :ok | {:error, term()}
   def put_block_list(block_ids, container, name, blob_content_type, params) do
-    params = [{:comp, "blocklist"} | params]
     content_type = "text/plain; charset=UTF-8"
     blob_content_type = blob_content_type || "application/octet-stream"
 
     blocks =
       block_ids
       |> Enum.reverse()
-      |> Enum.map(fn block_id -> "<Uncommitted>#{block_id}</Uncommitted>" end)
-      |> Enum.join()
+      |> Enum.map_join("", fn block_id -> "<Uncommitted>#{block_id}</Uncommitted>" end)
 
     body = """
     <?xml version="1.0" encoding="utf-8"?>
@@ -72,26 +72,29 @@ defmodule Azurex.Blob.Block do
     </BlockList>
     """
 
-    %HTTPoison.Request{
-      method: :put,
-      url: Blob.get_url(container, name),
-      params: params,
-      body: body,
-      headers: [
-        {"content-type", content_type},
-        {"x-ms-blob-content-type", blob_content_type}
-      ]
-    }
+    request =
+      Req.new(
+        method: :put,
+        url: Blob.get_url(container, name),
+        params: [{:comp, "blocklist"} | params],
+        body: body,
+        headers: [
+          {"content-type", content_type},
+          {"x-ms-blob-content-type", blob_content_type}
+        ]
+      )
+
+    request
     |> SharedKey.sign(
       storage_account_name: Config.storage_account_name(),
       storage_account_key: Config.storage_account_key(),
       content_type: content_type
     )
-    |> HTTPoison.request()
+    |> Req.request()
     |> case do
-      {:ok, %HTTPoison.Response{status_code: 201}} -> :ok
-      {:ok, err} -> {:error, err}
-      {:error, err} -> {:error, err}
+      {:ok, %{status: 201}} -> :ok
+      {:ok, response} -> {:error, response}
+      {:error, exception} -> {:error, exception}
     end
   end
 

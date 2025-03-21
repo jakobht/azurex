@@ -20,7 +20,7 @@ defmodule Azurex.ContainerIntegrationTests do
     end
 
     test "returns an error when the container name is invalid" do
-      assert {:error, %HTTPoison.Response{status_code: 400}} =
+      assert {:error, %Req.Response{status: 400}} =
                Container.head_container("Thi$isinvalid")
     end
   end
@@ -40,7 +40,7 @@ defmodule Azurex.ContainerIntegrationTests do
     end
 
     test "returns an error if the container name is invalid" do
-      assert {:error, %HTTPoison.Response{status_code: 400}} = Container.create("@$1")
+      assert {:error, %Req.Response{status: 400}} = Container.create("@$1")
     end
   end
 end

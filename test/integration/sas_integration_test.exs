@@ -13,8 +13,8 @@ defmodule Azurex.SasIntegrationTests do
     test "sas url works" do
       url = SharedAccessSignature.sas_url("test", "test_blob", resource_type: :blob)
 
-      assert {:ok, %HTTPoison.Response{status_code: 200, body: "test_blob_content"}} =
-               HTTPoison.get(url)
+      assert {:ok, %Req.Response{status: 200, body: "test_blob_content"}} =
+               Req.get(url)
     end
   end
 end

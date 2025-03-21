@@ -98,11 +98,11 @@ defmodule Azurex.BlobIntegrationTests do
 
       assert {:ok, headers} = Blob.head_blob(blob_name)
       headers = Map.new(headers)
-      assert headers["content-length"] == byte_size(@sample_file_contents) |> to_string()
-      assert headers["content-type"] == "text/plain"
+      assert headers["content-length"] == [byte_size(@sample_file_contents) |> to_string()]
+      assert headers["content-type"] == ["text/plain"]
 
       assert headers["content-md5"] ==
-               :crypto.hash(:md5, @sample_file_contents) |> Base.encode64()
+               [:crypto.hash(:md5, @sample_file_contents) |> Base.encode64()]
     end
 
     test "passing container" do
@@ -120,7 +120,7 @@ defmodule Azurex.BlobIntegrationTests do
       headers = Map.new(headers)
 
       assert headers["content-md5"] ==
-               :crypto.hash(:md5, @sample_file_contents) |> Base.encode64()
+               [:crypto.hash(:md5, @sample_file_contents) |> Base.encode64()]
     end
   end
 
