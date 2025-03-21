@@ -18,7 +18,7 @@ The integration test setup will attempt to create two containers in the blob sto
 The setup will also attempt to create a blob in the `test` container called `test_blob` with the content `test_blob_content`.
 
 These setup steps rely on lib code to create these objects. If this behavior has broken, you can use the Azure Storage Explorer to create the containers and the blob:
-https://azure.microsoft.com/en-us/products/storage/storage-explorer/#overview
+https://Azurex.microsoft.com/en-us/products/storage/storage-explorer/#overview
 
 # Azurite
 

@@ -4,7 +4,7 @@ defmodule Azurex.MixProject do
   def project do
     [
       app: :azurex,
-      version: "1.1.0",
+      version: "1.2.0",
       elixir: "~> 1.12",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
@@ -12,7 +12,7 @@ defmodule Azurex.MixProject do
       package: package(),
       deps: deps(),
       name: "AzureX",
-      source_url: "https://github.com/jakobht/azurex"
+      source_url: "https://github.com/eyrmedical/azurex"
     ]
   end
 
@@ -28,7 +28,7 @@ defmodule Azurex.MixProject do
     [
       {:dialyxir, "~> 1.4", only: [:dev, :test], runtime: false},
       {:ex_doc, ">= 0.0.0", only: :dev, runtime: false},
-      {:httpoison, "~> 1.8 or ~> 2.2"}
+      {:req, "~> 0.5"}
     ]
   end
 
@@ -42,7 +42,7 @@ defmodule Azurex.MixProject do
   defp package do
     [
       licenses: ["Apache-2.0", "MIT"],
-      links: %{"GitHub" => "https://github.com/jakobht/azurex"}
+      links: %{"GitHub" => "https://github.com/eyrmedical/azurex"}
     ]
   end
 end

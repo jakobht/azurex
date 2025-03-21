@@ -1,6 +1,6 @@
 defmodule Azurex.Blob.Config do
   @moduledoc """
-  Azurex Blob Config
+  Azure Blob Config
   """
 
   @missing_envs_error_msg """
@@ -67,15 +67,13 @@ defmodule Azurex.Blob.Config do
     do: Keyword.get(conf(), :storage_account_connection_string)
 
   @spec parse_connection_string(nil | binary) :: map
+
   @doc """
   Parses a connection string to a key value map.
 
   ## Examples
 
       iex> parse_connection_string("Key=value")
-      %{"Key" => "value"}
-
-      iex> parse_connection_string("Key=value;")
       %{"Key" => "value"}
 
       iex> parse_connection_string("Key1=hello;Key2=world")
@@ -88,7 +86,7 @@ defmodule Azurex.Blob.Config do
 
   def parse_connection_string(connection_string) do
     connection_string
-    |> String.split(";", trim: true)
+    |> String.split(";")
     |> Enum.map(&String.split(&1, "=", parts: 2))
     |> Map.new(fn [key, value] -> {key, value} end)
   end

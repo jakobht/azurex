@@ -24,3 +24,4 @@ azurex-*.tar
 .elixir_ls
 .vscode
 /config/config.exs
+.azurite
