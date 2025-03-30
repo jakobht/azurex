@@ -4,6 +4,8 @@ defmodule Azurex.Authorization.ServicePrincipalTest do
 
   alias Azurex.Authorization.ServicePrincipal
 
+  import ExUnit.CaptureLog
+
   setup do
     bypass = Bypass.open()
 
@@ -105,13 +107,29 @@ defmodule Azurex.Authorization.ServicePrincipalTest do
 
       input_request = generate_request()
 
-      output_request =
-        ServicePrincipal.add_bearer_token(
-          input_request,
-          "client_id",
-          "client_secret",
-          "tenant_id"
-        )
+      {output_request, log} =
+        with_log(fn ->
+          ServicePrincipal.add_bearer_token(
+            input_request,
+            "client_id",
+            "client_secret",
+            "tenant_id"
+          )
+        end)
+
+      assert output_request == %HTTPoison.Request{
+               body: "sample body",
+               headers: [
+                 {"Authorization", "Bearer No token"},
+                 {"x-ms-blob-type", "BlockBlob"}
+               ],
+               method: :put,
+               options: [recv_timeout: :infinity],
+               params: %{},
+               url: "https://example.com/sample-path"
+             }
+
+      assert log =~ "Failed to fetch bearer token. Reason: 403: Not authorize"
     end
   end
 end

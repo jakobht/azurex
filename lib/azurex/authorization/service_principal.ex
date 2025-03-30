@@ -40,10 +40,15 @@ defmodule Azurex.Authorization.ServicePrincipal do
   end
 
   defp refresh_bearer_token_cache(client_id, client_secret, tenant_id) do
-    token = fetch_bearer_token(client_id, client_secret, tenant_id)
-    expiry = extract_expiry_time(token) - @cache_expiry_margin_seconds
-    :ets.insert(:bearer_token_cache, {@cache_key, token, expiry})
-    token
+    case fetch_bearer_token(client_id, client_secret, tenant_id) do
+      {:ok, token} ->
+        expiry = extract_expiry_time(token) - @cache_expiry_margin_seconds
+        :ets.insert(:bearer_token_cache, {@cache_key, token, expiry})
+        token
+
+      :error ->
+        "No token"
+    end
   end
 
   defp extract_expiry_time(token) do
@@ -72,15 +77,15 @@ defmodule Azurex.Authorization.ServicePrincipal do
 
     case respone do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        body |> Jason.decode!() |> Map.fetch!("access_token")
+        {:ok, body |> Jason.decode!() |> Map.fetch!("access_token")}
 
       {:ok, %HTTPoison.Response{status_code: sc, body: body}} ->
         Logger.error("Failed to fetch bearer token. Reason: #{sc}: #{body}")
-        "No token"
+        :error
 
       {:error, %HTTPoison.Error{reason: reason}} ->
         Logger.error("Failed to fetch bearer token. Reason: #{reason}")
-        "No token"
+        :error
     end
   end
 end
