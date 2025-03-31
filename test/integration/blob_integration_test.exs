@@ -7,6 +7,11 @@ defmodule Azurex.BlobIntegrationTests do
   @sample_file_contents "sample file\ncontents\n"
   @integration_testing_container "integrationtestingcontainer"
 
+  setup do
+    # set integration test env in case another test has overwritten it
+    AzuriteSetup.set_env()
+  end
+
   describe "upload and download a blob" do
     test "using default container" do
       blob_name = make_blob_name()
