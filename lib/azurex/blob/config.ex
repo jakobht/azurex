@@ -46,8 +46,6 @@ defmodule Azurex.Blob.Config do
     end
   end
 
-  defp try_account_key_env(value), do: value
-
   defp try_account_key_conn_string(nil) do
     case get_connection_string_value("AccountKey") do
       nil -> nil
