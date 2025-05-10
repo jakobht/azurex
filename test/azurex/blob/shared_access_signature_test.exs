@@ -2,7 +2,7 @@ defmodule Azurex.Blob.SharedAccessSignatureTest do
   use ExUnit.Case
   import Azurex.Blob.SharedAccessSignature
 
-  setup_all do
+  setup do
     Application.put_env(:azurex, Azurex.Blob.Config,
       storage_account_name: "storage_account",
       storage_account_key: Base.encode64("secretkey")
@@ -31,7 +31,36 @@ defmodule Azurex.Blob.SharedAccessSignatureTest do
              )
   end
 
+  test "defaults to parameters from overrides" do
+    url_with_env = sas_url(container(), blob(), from: now())
+
+    connection_params = Keyword.put(delete_env(), :container, container())
+    url_with_overrides = sas_url(connection_params, blob(), from: now())
+
+    assert url_with_env == url_with_overrides
+  end
+
+  test "wihout overrides, operates on default container" do
+    env =
+      Application.get_env(:azurex, Azurex.Blob.Config)
+      |> Keyword.put(:default_container, container())
+
+    # Reapply environment but with default container
+    Application.put_env(:azurex, Azurex.Blob.Config, env)
+
+    assert sas_url([], "/", from: now()) == sas_url(container(), "/", from: now())
+  end
+
   defp container, do: "my_container"
   defp blob, do: "/folder/blob.mp4"
   defp now, do: ~U[2022-10-10 10:10:00Z]
+
+  defp delete_env do
+    env = Application.get_env(:azurex, Azurex.Blob.Config)
+    container = env[:default_container]
+    Application.put_env(:azurex, Azurex.Blob.Config, [])
+
+    env
+    |> Keyword.put(:container, container)
+  end
 end
