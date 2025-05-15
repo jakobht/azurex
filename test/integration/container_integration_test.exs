@@ -2,7 +2,7 @@ defmodule Azurex.ContainerIntegrationTests do
   use ExUnit.Case, async: false
   alias Azurex.Blob.Container
 
-  @moduletag integration: true
+  @moduletag integration: true, azure_integration: true
   @integration_testing_container "integrationtestingcontainer"
 
   setup do

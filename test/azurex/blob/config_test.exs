@@ -44,30 +44,42 @@ defmodule Azurex.Blob.ConfigTest do
     end
   end
 
-  describe "storage_account_key/0" do
-    test "returns configured env" do
+  describe "auth_method/0" do
+    test "storage account key from storage_account_key" do
       put_config(storage_account_key: Base.encode64("sample key"))
 
-      assert storage_account_key() == "sample key"
+      assert auth_method() == {:account_key, "sample key"}
     end
 
-    test "returns based on storage_account_connection_string env" do
+    test "storage account key from storage_account_connection_string" do
       put_config(storage_account_connection_string: @sample_connection_string)
-      assert storage_account_key() == "cs_sample_key"
+      assert auth_method() == {:account_key, "cs_sample_key"}
+    end
+
+    test "prioritize values from parameters, storage service principal" do
+      put_config(
+        storage_client_id: "test_client_id",
+        storage_client_secret: "test_secret",
+        storage_tenant_id: "test_tenant"
+      )
+
+      assert auth_method(storage_tenant_id: "another_tenant") ==
+               {:service_principal, "test_client_id", "test_secret", "another_tenant"}
     end
 
     test "prioritizes values from parameters" do
       put_config(storage_account_key: Base.encode64("sample key"))
 
-      assert storage_account_key(storage_account_key: Base.encode64("other key")) == "other key"
+      assert auth_method(storage_account_key: Base.encode64("other key")) ==
+               {:account_key, "other key"}
 
-      assert storage_account_key(storage_account_connection_string: @sample_connection_string) ==
-               "cs_sample_key"
+      assert auth_method(storage_account_connection_string: @sample_connection_string) ==
+               {:account_key, "cs_sample_key"}
     end
 
     test "error no env set" do
       put_config()
-      assert_raise RuntimeError, &storage_account_key/0
+      assert_raise RuntimeError, &auth_method/0
     end
   end
 

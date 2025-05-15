@@ -5,6 +5,7 @@ defmodule Azurex.Blob.SharedAccessSignature do
   Based on:
   https://learn.microsoft.com/en-us/rest/api/storageservices/create-service-sas
   """
+  alias Azurex.Blob.Config
 
   alias Azurex.Blob.Config
 
@@ -40,14 +41,20 @@ defmodule Azurex.Blob.SharedAccessSignature do
     container = Keyword.get(connection_params, :container) || Config.default_container()
     resource = Path.join(container, resource)
 
+    account_key =
+      case Config.auth_method(connection_params) do
+        {:account_key, key} -> key
+        _ -> raise "Only account key authentication is supported for SAS"
+      end
+
     token =
       build_token(
         resource_type,
         resource,
         {from, expiry},
         permissions,
-        Config.storage_account_name(connection_params),
-        Config.storage_account_key(connection_params)
+        Azurex.Blob.Config.storage_account_name(connection_params),
+        account_key
       )
 
     "#{Path.join(base_url, resource)}?#{token}"

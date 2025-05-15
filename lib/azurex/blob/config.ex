@@ -2,13 +2,7 @@ defmodule Azurex.Blob.Config do
   @moduledoc """
   Azurex Blob Config
   """
-
   @type config_overrides :: String.t() | keyword
-
-  @missing_envs_error_msg """
-  Azurex.Blob.Config: `storage_account_name` and `storage_account_key`
-  or `storage_account_connection_string` required.
-  """
 
   defp conf, do: Application.get_env(:azurex, __MODULE__, [])
 
@@ -44,23 +38,55 @@ defmodule Azurex.Blob.Config do
       get_connection_string_from_params("AccountName", connection_params) ||
       Keyword.get(conf(), :storage_account_name) ||
       get_connection_string_value("AccountName") ||
-      raise @missing_envs_error_msg
+      raise "Azurex.Blob.Config: Missing storage account name"
   end
 
-  @doc """
-  Azure storage account access key. Base64 encoded, as provided by azure UI.
-  Required if `storage_account_connection_string` not set.
-  """
-  @spec storage_account_key(keyword) :: binary
-  def storage_account_key(connection_params \\ []) do
+  @spec try_account_key(keyword) :: nil | {:account_key, String.t()}
+  defp try_account_key(connection_params) do
     encoded_account_key =
       Keyword.get(connection_params, :storage_account_key) ||
         get_connection_string_from_params("AccountKey", connection_params) ||
         Keyword.get(conf(), :storage_account_key) ||
-        get_connection_string_value("AccountKey") ||
-        raise @missing_envs_error_msg
+        get_connection_string_value("AccountKey")
 
-    Base.decode64!(encoded_account_key)
+    case encoded_account_key do
+      nil -> nil
+      key -> {:account_key, Base.decode64!(key)}
+    end
+  end
+
+  @spec try_service_principal(keyword) ::
+          nil | {:service_principal, String.t(), String.t(), String.t()}
+  defp try_service_principal(connection_params) do
+    params = [:storage_client_id, :storage_client_secret, :storage_tenant_id]
+
+    values =
+      Enum.map(params, &(Keyword.get(connection_params, &1) || Keyword.get(conf(), &1)))
+      |> Enum.reject(&is_nil/1)
+
+    case values do
+      [client_id, client_secret, tenant] ->
+        {:service_principal, client_id, client_secret, tenant}
+
+      _ ->
+        nil
+    end
+  end
+
+  @doc """
+  Investigate which authentication method is set and return the appropriate tuple
+  or raise an error if miss configured.
+  """
+  @spec auth_method(keyword) ::
+          {:service_principal, String.t(), String.t(), String.t()} | {:account_key, String.t()}
+  def auth_method(connection_params \\ []) do
+    try_account_key(connection_params) ||
+      try_service_principal(connection_params) ||
+      raise """
+      Azurex.Blob.Config: Missing credentials settings.
+      Either set storage account key with: `storage_account_key` or `storage_account_connection_string`
+      Or set service principal with: `storage_client_id`, `storage_client_secret` and `storage_tenant_id`
+      """
   end
 
   @doc """
@@ -125,5 +151,9 @@ defmodule Azurex.Blob.Config do
     Keyword.get(connection_params, :storage_account_connection_string)
     |> parse_connection_string()
     |> Map.get(key)
+  end
+
+  def get_auth_url do
+    Keyword.get(conf(), :auth_url) || "https://login.microsoftonline.com"
   end
 end

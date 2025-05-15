@@ -2,7 +2,7 @@ defmodule Azurex.BlobIntegrationTests do
   use ExUnit.Case, async: false
   alias Azurex.Blob
 
-  @moduletag integration: true
+  @moduletag integration: true, azure_integration: true
 
   @sample_file_contents "sample file\ncontents\n"
   @integration_testing_container "integrationtestingcontainer"
@@ -112,7 +112,8 @@ defmodule Azurex.BlobIntegrationTests do
              ) == :ok
 
       assert {:ok, headers} = Blob.head_blob(blob_name)
-      headers = Map.new(headers)
+
+      headers = Enum.map(headers, fn {k, v} -> {String.downcase(k), v} end) |> Map.new()
       assert headers["content-length"] == byte_size(@sample_file_contents) |> to_string()
       assert headers["content-type"] == "text/plain"
 
@@ -132,7 +133,7 @@ defmodule Azurex.BlobIntegrationTests do
 
       assert {:error, :not_found} = Blob.head_blob(blob_name)
       assert {:ok, headers} = Blob.head_blob(blob_name, @integration_testing_container)
-      headers = Map.new(headers)
+      headers = Enum.map(headers, fn {k, v} -> {String.downcase(k), v} end) |> Map.new()
 
       assert headers["content-md5"] ==
                :crypto.hash(:md5, @sample_file_contents) |> Base.encode64()
