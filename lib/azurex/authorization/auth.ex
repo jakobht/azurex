@@ -6,13 +6,13 @@ defmodule Azurex.Authorization.Auth do
   @doc """
   Adds authentication header to a given request based on the configured auth method.
   """
-  @spec authorize_request(HTTPoison.Request.t(), binary()) :: HTTPoison.Request.t()
-  def authorize_request(request, content_type \\ "") do
-    case Config.auth_method() do
+  @spec authorize_request(HTTPoison.Request.t(), keyword(), binary()) :: HTTPoison.Request.t()
+  def authorize_request(request, connection_params, content_type \\ "") do
+    case Config.auth_method(connection_params) do
       {:account_key, storage_account_key} ->
         SharedKey.sign(
           request,
-          storage_account_name: Config.storage_account_name(),
+          storage_account_name: Config.storage_account_name(connection_params),
           storage_account_key: storage_account_key,
           content_type: content_type
         )

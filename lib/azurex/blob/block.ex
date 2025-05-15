@@ -10,22 +10,24 @@ defmodule Azurex.Blob.Block do
 
   alias Azurex.Authorization.Auth
   alias Azurex.Blob
+  alias Azurex.Blob.Config
 
   @doc """
   Creates a block to be committed to a blob.
 
   On success, returns an :ok tuple with the base64 encoded block_id.
   """
-  @spec put_block(String.t(), bitstring(), String.t(), list()) ::
+  @spec put_block(Config.config_overrides(), bitstring(), String.t(), list()) ::
           {:ok, String.t()} | {:error, term()}
-  def put_block(container, chunk, name, params) do
+  def put_block(overrides \\ [], chunk, name, params) do
     block_id = build_block_id()
     content_type = "application/octet-stream"
     params = [{:comp, "block"}, {:blockid, block_id} | params]
+    connection_params = Config.get_connection_params(overrides)
 
     %HTTPoison.Request{
       method: :put,
-      url: Blob.get_url(container, name),
+      url: Blob.get_url(name, connection_params),
       params: params,
       body: chunk,
       headers: [
@@ -33,7 +35,7 @@ defmodule Azurex.Blob.Block do
         {"content-length", byte_size(chunk)}
       ]
     }
-    |> Auth.authorize_request(content_type)
+    |> Auth.authorize_request(connection_params, content_type)
     |> HTTPoison.request()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 201}} -> {:ok, block_id}
@@ -47,12 +49,13 @@ defmodule Azurex.Blob.Block do
 
   Block IDs should be base64 encoded, as returned by put_block/2.
   """
-  @spec put_block_list(list(), String.t(), String.t(), String.t() | nil, list()) ::
+  @spec put_block_list(list(), Config.config_overrides(), String.t(), String.t() | nil, list()) ::
           :ok | {:error, term()}
-  def put_block_list(block_ids, container, name, blob_content_type, params) do
+  def put_block_list(block_ids, overrides \\ [], name, blob_content_type, params) do
     params = [{:comp, "blocklist"} | params]
     content_type = "text/plain; charset=UTF-8"
     blob_content_type = blob_content_type || "application/octet-stream"
+    connection_params = Config.get_connection_params(overrides)
 
     blocks =
       block_ids
@@ -69,7 +72,7 @@ defmodule Azurex.Blob.Block do
 
     %HTTPoison.Request{
       method: :put,
-      url: Blob.get_url(container, name),
+      url: Blob.get_url(name, connection_params),
       params: params,
       body: body,
       headers: [
@@ -77,7 +80,7 @@ defmodule Azurex.Blob.Block do
         {"x-ms-blob-content-type", blob_content_type}
       ]
     }
-    |> Auth.authorize_request(content_type)
+    |> Auth.authorize_request(connection_params, content_type)
     |> HTTPoison.request()
     |> case do
       {:ok, %HTTPoison.Response{status_code: 201}} -> :ok

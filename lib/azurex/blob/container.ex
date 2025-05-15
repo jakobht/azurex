@@ -5,13 +5,15 @@ defmodule Azurex.Blob.Container do
   alias Azurex.Authorization.Auth
   alias Azurex.Blob.Config
 
-  def head_container(container) do
+  def head_container(container, overrides \\ []) do
+    connection_params = Config.get_connection_params(overrides)
+
     %HTTPoison.Request{
-      url: Config.api_url() <> "/" <> container,
+      url: Config.api_url(connection_params) <> "/" <> container,
       params: [restype: "container"],
       method: :head
     }
-    |> Auth.authorize_request()
+    |> Auth.authorize_request(connection_params)
     |> HTTPoison.request()
     |> case do
       {:ok, %{status_code: 200, headers: headers}} -> {:ok, headers}
@@ -21,13 +23,15 @@ defmodule Azurex.Blob.Container do
     end
   end
 
-  def create(container) do
+  def create(container, overrides \\ []) do
+    connection_params = Config.get_connection_params(overrides)
+
     %HTTPoison.Request{
-      url: Config.api_url() <> "/" <> container,
+      url: Config.api_url(connection_params) <> "/" <> container,
       params: [restype: "container"],
       method: :put
     }
-    |> Auth.authorize_request("application/octet-stream")
+    |> Auth.authorize_request(connection_params, "application/octet-stream")
     |> HTTPoison.request()
     |> case do
       {:ok, %{status_code: 201}} -> {:ok, container}

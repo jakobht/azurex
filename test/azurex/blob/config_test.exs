@@ -33,6 +33,15 @@ defmodule Azurex.Blob.ConfigTest do
       put_config()
       assert_raise RuntimeError, &storage_account_name/0
     end
+
+    test "prioritizes values from parameters" do
+      put_config(storage_account_name: "samplename")
+
+      assert storage_account_name(storage_account_name: "othername") == "othername"
+
+      assert storage_account_name(storage_account_connection_string: @sample_connection_string) ==
+               "cs_samplename"
+    end
   end
 
   describe "auth_method/0" do
@@ -47,14 +56,25 @@ defmodule Azurex.Blob.ConfigTest do
       assert auth_method() == {:account_key, "cs_sample_key"}
     end
 
-    test "storage service principal" do
+    test "prioritize values from parameters, storage service principal" do
       put_config(
         storage_client_id: "test_client_id",
         storage_client_secret: "test_secret",
         storage_tenant_id: "test_tenant"
       )
 
-      assert auth_method() == {:service_principal, "test_client_id", "test_secret", "test_tenant"}
+      assert auth_method(storage_tenant_id: "another_tenant") ==
+               {:service_principal, "test_client_id", "test_secret", "another_tenant"}
+    end
+
+    test "prioritizes values from parameters" do
+      put_config(storage_account_key: Base.encode64("sample key"))
+
+      assert auth_method(storage_account_key: Base.encode64("other key")) ==
+               {:account_key, "other key"}
+
+      assert auth_method(storage_account_connection_string: @sample_connection_string) ==
+               {:account_key, "cs_sample_key"}
     end
 
     test "error no env set" do
@@ -104,6 +124,16 @@ defmodule Azurex.Blob.ConfigTest do
       assert api_url() == "http://127.0.0.1:10000/devstoreaccount1"
     end
 
+    test "prioritizes values from parameters" do
+      assert api_url(api_url: "https://example.com") == "https://example.com"
+
+      connection_string =
+        @sample_connection_string <> ";BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1"
+
+      assert api_url(storage_account_connection_string: connection_string) ==
+               "http://127.0.0.1:10000/devstoreaccount1"
+    end
+
     test "error no env set" do
       put_config()
       assert_raise RuntimeError, &api_url/0
@@ -117,6 +147,13 @@ defmodule Azurex.Blob.ConfigTest do
       assert get_connection_string_value("Key") == "value"
     end
 
+    test "proiritizes value from parameters" do
+      put_config(storage_account_connection_string: "Key=value")
+
+      assert get_connection_string_value("Key", storage_account_connection_string: "Key=other") ==
+               "other"
+    end
+
     test "env not in connection_string" do
       put_config(storage_account_connection_string: "Key=value")
 
@@ -127,6 +164,18 @@ defmodule Azurex.Blob.ConfigTest do
       put_config()
 
       assert get_connection_string_value("Invalid") == nil
+    end
+  end
+
+  describe "get_connection_params/1" do
+    test "assumes it's a container if it's given a string" do
+      assert get_connection_params("container_name") == [container: "container_name"]
+    end
+
+    test "returns a keyword list as is" do
+      keyword = [storage_account_name: "name", container: "container"]
+
+      assert get_connection_params(keyword) == keyword
     end
   end
 end

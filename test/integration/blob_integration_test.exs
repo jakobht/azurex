@@ -84,6 +84,21 @@ defmodule Azurex.BlobIntegrationTests do
                timeout: 10
              ) == {:ok, @sample_file_contents}
     end
+
+    test "with overrides from put_blob" do
+      blob_name = make_blob_name()
+      config = Keyword.put(delete_env(), :container, @integration_testing_container)
+
+      Blob.put_blob(blob_name, @sample_file_contents, "text/plain", config)
+
+      assert Blob.get_blob(blob_name, config) ==
+               {:ok, @sample_file_contents}
+
+      AzuriteSetup.set_env()
+
+      assert Blob.get_blob(blob_name, @integration_testing_container) ==
+               {:ok, @sample_file_contents}
+    end
   end
 
   describe "head blob" do
@@ -123,6 +138,29 @@ defmodule Azurex.BlobIntegrationTests do
       assert headers["content-md5"] ==
                :crypto.hash(:md5, @sample_file_contents) |> Base.encode64()
     end
+
+    test "with parameters" do
+      blob_name = make_blob_name()
+      default_config = delete_env()
+      config = Keyword.put(default_config, :container, @integration_testing_container)
+
+      assert Blob.put_blob(
+               blob_name,
+               @sample_file_contents,
+               "text/plain",
+               config
+             ) == :ok
+
+      assert {:error, :not_found} = Blob.head_blob(blob_name, default_config)
+      assert {:ok, headers} = Blob.head_blob(blob_name, config)
+      headers = Map.new(headers)
+
+      assert headers["content-md5"] ==
+               :crypto.hash(:md5, @sample_file_contents) |> Base.encode64()
+
+      AzuriteSetup.set_env()
+      assert {:error, :not_found} = Blob.head_blob(blob_name)
+    end
   end
 
   describe "copying a blob" do
@@ -141,6 +179,14 @@ defmodule Azurex.BlobIntegrationTests do
       assert {:ok, @sample_file_contents} = Blob.get_blob(destination_blob)
     end
 
+    test "accepts connection parameters", %{source_blob: source_blob} do
+      destination_blob = "dest_blob"
+      config = delete_env()
+
+      assert {:ok, _} = Blob.copy_blob(source_blob, destination_blob, config)
+      assert {:ok, @sample_file_contents} = Blob.get_blob(destination_blob, config)
+    end
+
     test "returns error when source blob does not exist", _context do
       destination_blob = "dest_blob"
       assert {:error, _} = Blob.copy_blob("does_not_exist", destination_blob)
@@ -154,6 +200,11 @@ defmodule Azurex.BlobIntegrationTests do
 
     test "passing container, not checking result" do
       assert {:ok, _result_not_checked} = Blob.list_blobs(@integration_testing_container)
+    end
+
+    test "passing container as connection parameter, not checking result" do
+      assert {:ok, _result_not_checked} =
+               Blob.list_blobs(container: @integration_testing_container)
     end
 
     test "passing container and params, not checking result" do
@@ -182,6 +233,22 @@ defmodule Azurex.BlobIntegrationTests do
 
       assert {:error, :not_found} = Blob.head_blob(blob_name)
     end
+
+    test "delete_blob/3 deletes the blob from the container, with connection parameters" do
+      blob_name = make_blob_name()
+      config = delete_env()
+
+      assert Blob.put_blob(
+               blob_name,
+               @sample_file_contents,
+               "text/plain",
+               config
+             ) == :ok
+
+      assert :ok = Blob.delete_blob(blob_name, config)
+
+      assert {:error, :not_found} = Blob.head_blob(blob_name, config)
+    end
   end
 
   defp make_blob_name do
@@ -191,5 +258,14 @@ defmodule Azurex.BlobIntegrationTests do
       |> String.replace(":", ".")
 
     "#{escaped_time}.txt"
+  end
+
+  defp delete_env do
+    env = Application.get_env(:azurex, Azurex.Blob.Config)
+    container = env[:default_container]
+    Application.put_env(:azurex, Azurex.Blob.Config, [])
+
+    env
+    |> Keyword.put(:container, container)
   end
 end

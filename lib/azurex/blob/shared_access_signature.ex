@@ -7,11 +7,13 @@ defmodule Azurex.Blob.SharedAccessSignature do
   """
   alias Azurex.Blob.Config
 
+  alias Azurex.Blob.Config
+
   @doc """
-  Generates a SAS url on a resource in a given container.
+  Generates a SAS url on a resource.
 
   ## Params
-  - container: the storage container name
+  - overrides: use different configuration options for the azure connection. If the parameter is a string, it is treated as the container for backwards compatibility
   - resource: the path to the resource (blob, container, directory...)
   - opts: an optional keyword list with following options
     - resource_type: one of :blob / :blob_version / :blob_snapshot / :container / directory
@@ -21,20 +23,26 @@ defmodule Azurex.Blob.SharedAccessSignature do
     - expiry: a tuple to set how long before the SAS url expires. Defaults to `{:second, 3600}`.
 
   ## Examples
+  - `SharedAccessSignature.sas_url("/")`
+  - `SharedAccessSignature.sas_url([], "/", permissions: [:read, :write])`
   - `SharedAccessSignature.sas_url("my_container", "/", permissions: [:write], expiry: {:day, 2})`
   - `SharedAccessSignature.sas_url("my_container", "foo/song.mp3", resource_type: :blob)`
+  - `SharedAccessSignature.sas_url([storage_account_connection_string: "AccountName=name;AccountKey=key", container: "my_container"], "/")`
+  - `SharedAccessSignature.sas_url([storage_account_name: "name", storage_account_key: "key"], "bar/image.jpg", resource_type: :blob)`
   """
-  @spec sas_url(String.t(), String.t(), [{atom(), any()}]) :: String.t()
-  def sas_url(container, resource, opts \\ []) do
-    base_url = Azurex.Blob.Config.api_url()
+  @spec sas_url(Config.config_overrides(), String.t(), [{atom(), any()}]) :: String.t()
+  def sas_url(overrides \\ [], resource, opts \\ []) do
+    connection_params = Config.get_connection_params(overrides)
+    base_url = Config.api_url(connection_params)
     resource_type = Keyword.get(opts, :resource_type, :container)
     permissions = Keyword.get(opts, :permissions, [:read])
     from = Keyword.get(opts, :from, DateTime.utc_now())
     expiry = Keyword.get(opts, :expiry, {:second, 3600})
+    container = Keyword.get(connection_params, :container) || Config.default_container()
     resource = Path.join(container, resource)
 
     account_key =
-      case Config.auth_method() do
+      case Config.auth_method(connection_params) do
         {:account_key, key} -> key
         _ -> raise "Only account key authentication is supported for SAS"
       end
@@ -45,7 +53,7 @@ defmodule Azurex.Blob.SharedAccessSignature do
         resource,
         {from, expiry},
         permissions,
-        Azurex.Blob.Config.storage_account_name(),
+        Azurex.Blob.Config.storage_account_name(connection_params),
         account_key
       )
 

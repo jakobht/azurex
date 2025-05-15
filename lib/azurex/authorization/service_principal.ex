@@ -55,7 +55,7 @@ defmodule Azurex.Authorization.ServicePrincipal do
     token
     |> String.split(".")
     |> Enum.at(1)
-    |> Base.decode64!()
+    |> Base.decode64!(padding: false)
     |> Jason.decode!()
     |> Map.get("exp")
   end
